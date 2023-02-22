@@ -1,12 +1,13 @@
 use std::fmt::Debug;
 use rayon::prelude::*;
-use petgraph::{graph::NodeIndex, prelude::UnGraph};
+use petgraph::{graph::NodeIndex, Graph, EdgeType};
 use hashbrown::HashSet;
 
-pub fn enumerated_search<N, E>(graph: &UnGraph<N, E>, k: usize) -> Vec<HashSet<NodeIndex>>
+pub fn enumerated_search<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize) -> Vec<HashSet<NodeIndex>>
 where
     N: Debug + Sync,
     E: Debug + Sync,
+    Ty: EdgeType + Sync,
 {
     graph
         .node_indices()
@@ -35,15 +36,18 @@ where
         .collect::<Vec<_>>()
 }
 
-fn extend_subgraph<N: Debug, E: Debug>(
+fn extend_subgraph<N, E, Ty>(
     all_subgraphs: &mut Vec<HashSet<NodeIndex>>,
-    graph: &UnGraph<N, E>,
+    graph: &Graph<N, E, Ty>,
     subgraph: &HashSet<NodeIndex>,
     extension: &mut HashSet<NodeIndex>,
     current_neighborhood: &HashSet<NodeIndex>,
     v: NodeIndex,
     k: usize,
-) {
+) 
+where
+    Ty: EdgeType,
+{
     if subgraph.len() == k {
         all_subgraphs.push(subgraph.clone());
     } else {
@@ -68,12 +72,15 @@ fn extend_subgraph<N: Debug, E: Debug>(
     }
 }
 
-fn exclusive_neighborhood<N: Debug, E: Debug>(
-    graph: &UnGraph<N, E>,
+fn exclusive_neighborhood<N, E, Ty>(
+    graph: &Graph<N, E, Ty>,
     subgraph: &HashSet<NodeIndex>,
     current_neighborhood: &HashSet<NodeIndex>,
     v: NodeIndex,
-) -> HashSet<NodeIndex> {
+) -> HashSet<NodeIndex>
+where
+    Ty: EdgeType,
+{
     graph
         .neighbors(v)
         .filter(|x| x.index() > v.index())
@@ -110,3 +117,24 @@ fn insert_neighborhood(
         .collect()
 }
 
+#[cfg(test)]
+mod testing {
+
+
+    #[test]
+    fn build_undirected_test_graph() {
+        let edges = [
+            (0, 1),
+            (0, 2),
+            (1, 2),
+            (3, 0),
+            (4, 0),
+            (5, 1),
+            (6, 1),
+            (7, 2),
+            (8, 2),
+        ];
+
+
+    }
+}
