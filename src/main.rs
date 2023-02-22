@@ -10,7 +10,6 @@ where
     N: Debug + Sync,
     E: Debug + Sync,
 {
-    
     graph
         .node_indices()
         .into_iter()
@@ -57,8 +56,7 @@ fn extend_subgraph<N: Debug, E: Debug>(
             let e_neighborhood = exclusive_neighborhood(graph, subgraph, current_neighborhood, w);
             let w_subgraph = insert_subgraph(subgraph, w);
             let mut w_extension = modify_extension(extension, &e_neighborhood, w);
-            let w_current_neighborhood =
-                insert_neighborhood(current_neighborhood, &e_neighborhood);
+            let w_current_neighborhood = insert_neighborhood(current_neighborhood, &e_neighborhood);
             extend_subgraph(
                 all_subgraphs,
                 graph,
