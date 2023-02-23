@@ -8,6 +8,8 @@ use std::fmt::Debug;
 use canon::canonical_form;
 use esu::enumerated_search;
 use nauty_pet::prelude::CanonGraph;
+use rand::SeedableRng;
+use rand_chacha::ChaChaRng;
 use rand_esu::random_enumerated_search;
 
 use hashbrown::{HashMap, HashSet};
@@ -74,7 +76,7 @@ fn graph_to_repr(graph: &CanonGraph<(), ()>, k: usize, is_directed: bool) -> Str
 
 fn main() {
     let k = 3;
-    let mut rng = rand::thread_rng();
+    let mut rng = ChaChaRng::seed_from_u64(0);
     let graph: Graph<(), (), Directed> = random_gnp_graph(&mut rng, 100, 0.5);
     
     let full_sg_map = run_enumerated(&graph, k);
