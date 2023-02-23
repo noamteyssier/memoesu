@@ -101,7 +101,7 @@ mod testing {
 
     #[test]
     fn build_undirected_test_graph() {
-        let edges = [
+        let _edges = [
             (0, 1),
             (0, 2),
             (1, 2),

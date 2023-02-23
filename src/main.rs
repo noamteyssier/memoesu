@@ -48,7 +48,7 @@ where
     E: Debug + Clone + Send + Sync,
 {
     eprintln!("Running complete enumerated search...");
-    let subgraph_indices = enumerated_search(&graph, k);
+    let subgraph_indices = enumerated_search(graph, k);
     eprintln!("Subgraphs found: {}", subgraph_indices.len());
     assemble_map(graph, subgraph_indices)
 }
@@ -64,7 +64,7 @@ where
     E: Debug + Clone + Send + Sync,
 {
     eprintln!("Running partial enumerated search...");
-    let subgraph_indices = random_enumerated_search(&graph, k, p, seed);
+    let subgraph_indices = random_enumerated_search(graph, k, p, seed);
     eprintln!("Subgraphs found: {}", subgraph_indices.len());
     assemble_map(graph, subgraph_indices)
 }
