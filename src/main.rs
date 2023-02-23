@@ -77,7 +77,7 @@ fn graph_to_repr(graph: &CanonGraph<(), ()>, k: usize, is_directed: bool) -> Str
 fn main() {
     let k = 3;
     let mut rng = ChaChaRng::seed_from_u64(0);
-    let graph: Graph<(), (), Directed> = random_gnp_graph(&mut rng, 100, 0.5);
+    let graph: Graph<(), (), Directed> = random_gnp_graph(&mut rng, 200, 0.5);
     
     let full_sg_map = run_enumerated(&graph, k);
     let partial_sg_map = run_random_enumerated(&graph, k, 0.20, 0);
@@ -97,36 +97,4 @@ fn main() {
         println!("{}\t{}\t{}\t{}\t{}", signature, full_count, partial_count, full_frequency, partial_frequency);
     }
 
-    // eprintln!("Starting Search...");
-    // // let subgraph_indices = enumerated_search(&graph, k);
-    // let subgraph_indices = random_enumerated_search(&graph, k, 0.10, 0);
-    // eprintln!("Calculating Canonical Forms...");
-
-    // let subgraphs = subgraph_indices
-    //     .into_par_iter()
-    //     .map(|indices| graph.into_subgraph(&indices))
-    //     .map(canonical_form)
-    //     .collect::<Vec<_>>();
-
-    // eprintln!("Counting Canonical Forms...");
-    // let mut sg_map = HashMap::new();
-    // for subgraph in subgraphs {
-    //     let count = sg_map.entry(subgraph).or_insert(0);
-    //     *count += 1;
-    // }
-
-    // for subgraph in sg_map.keys() {
-    //     let matrix = subgraph.adjacency_matrix();
-    //     let bv = (0..matrix.len())
-    //         .map(|x| {
-    //             if matrix.contains(x) {
-    //                 1
-    //             } else {
-    //                 0
-    //             }
-    //         })
-    //         .collect::<Vec<usize>>();
-    //     let repr = write_graph6(bv, k, true);
-    //     println!("{}: {}", repr, sg_map[subgraph]);
-    // }
 }
