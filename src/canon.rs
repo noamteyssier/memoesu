@@ -1,5 +1,5 @@
-use petgraph::{graph::NodeIndex, Graph, EdgeType};
 use hashbrown::{HashMap, HashSet};
+use petgraph::{graph::NodeIndex, EdgeType, Graph};
 
 pub trait IntoSubgraph<N, E, Ty>
 where
@@ -19,8 +19,8 @@ where
             .map(|(idx, x)| (x, idx as u32))
             .collect::<HashMap<_, _>>();
 
-
-        let edges = self.edge_indices()
+        let edges = self
+            .edge_indices()
             .map(|e| self.edge_endpoints(e).unwrap())
             .filter(|(u, v)| indices.contains(u) && indices.contains(v))
             .map(|(u, v)| (node_map[&u], node_map[&v]))

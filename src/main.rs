@@ -10,17 +10,20 @@ use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 use rand_esu::random_enumerated_search;
 
+use graph6_rs::write_graph6;
 use hashbrown::{HashMap, HashSet};
-use petgraph::{Graph, Directed, graph::NodeIndex};
+use petgraph::{graph::NodeIndex, Directed, Graph};
 use petgraph_gen::random_gnp_graph;
 use rayon::prelude::*;
-use graph6_rs::write_graph6;
 
 use graph_canon::CanonLabeling;
 
 use crate::canon::IntoSubgraph;
 
-fn assemble_map<N, E>(graph: &Graph<N, E>, subgraph_indices: Vec<HashSet<NodeIndex>>) -> HashMap<CanonLabeling, usize> 
+fn assemble_map<N, E>(
+    graph: &Graph<N, E>,
+    subgraph_indices: Vec<HashSet<NodeIndex>>,
+) -> HashMap<CanonLabeling, usize>
 where
     N: Debug + Clone + Send + Sync,
     E: Debug + Clone + Send + Sync,
@@ -39,7 +42,7 @@ where
     sg_map
 }
 
-fn run_enumerated<N, E>(graph: &Graph<N, E>, k: usize) -> HashMap<CanonLabeling, usize> 
+fn run_enumerated<N, E>(graph: &Graph<N, E>, k: usize) -> HashMap<CanonLabeling, usize>
 where
     N: Debug + Clone + Send + Sync,
     E: Debug + Clone + Send + Sync,
@@ -50,7 +53,12 @@ where
     assemble_map(graph, subgraph_indices)
 }
 
-fn run_random_enumerated<N, E>(graph: &Graph<N, E>, k: usize, p: f64, seed: usize) -> HashMap<CanonLabeling, usize> 
+fn run_random_enumerated<N, E>(
+    graph: &Graph<N, E>,
+    k: usize,
+    p: f64,
+    seed: usize,
+) -> HashMap<CanonLabeling, usize>
 where
     N: Debug + Clone + Send + Sync,
     E: Debug + Clone + Send + Sync,
@@ -65,7 +73,7 @@ fn main() {
     let k = 3;
     let mut rng = ChaChaRng::seed_from_u64(0);
     let graph: Graph<(), (), Directed> = random_gnp_graph(&mut rng, 100, 0.5);
-    
+
     let full_sg_map = run_enumerated(&graph, k);
     let partial_sg_map = run_random_enumerated(&graph, k, 0.5, 0);
 
@@ -81,8 +89,10 @@ fn main() {
         let full_frequency = *full_count as f64 / full_sg_total as f64;
         let partial_frequency = *partial_count as f64 / partial_sg_total as f64;
 
-        println!("{}\t{}\t{}\t{}\t{}", signature, full_count, partial_count, full_frequency, partial_frequency);
+        println!(
+            "{}\t{}\t{}\t{}\t{}",
+            signature, full_count, partial_count, full_frequency, partial_frequency
+        );
         // println!("{}", signature);
     }
-
 }

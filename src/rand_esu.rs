@@ -1,12 +1,19 @@
-use std::fmt::Debug;
+use crate::utils::{
+    exclusive_neighborhood, insert_neighborhood, insert_subgraph, modify_extension,
+};
+use hashbrown::HashSet;
+use petgraph::{graph::NodeIndex, EdgeType, Graph};
 use rand::Rng;
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use rayon::prelude::*;
-use petgraph::{graph::NodeIndex, Graph, EdgeType};
-use hashbrown::HashSet;
-use crate::utils::{exclusive_neighborhood, insert_subgraph, modify_extension, insert_neighborhood};
+use std::fmt::Debug;
 
-pub fn random_enumerated_search<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize, p: f64, seed: usize) -> Vec<HashSet<NodeIndex>>
+pub fn random_enumerated_search<N, E, Ty>(
+    graph: &Graph<N, E, Ty>,
+    k: usize,
+    p: f64,
+    seed: usize,
+) -> Vec<HashSet<NodeIndex>>
 where
     N: Debug + Sync,
     E: Debug + Sync,
@@ -56,8 +63,7 @@ fn random_extend_subgraph<N, E, Ty, R>(
     k: usize,
     p: f64,
     rng: &mut R,
-) 
-where
+) where
     Ty: EdgeType,
     R: Rng + Sync,
 {
@@ -90,10 +96,8 @@ where
     }
 }
 
-
 #[cfg(test)]
 mod testing {
-
 
     #[test]
     fn build_undirected_test_graph() {
@@ -108,8 +112,5 @@ mod testing {
             (7, 2),
             (8, 2),
         ];
-
-
     }
 }
-

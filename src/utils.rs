@@ -1,5 +1,5 @@
 use hashbrown::HashSet;
-use petgraph::{graph::NodeIndex, Graph, EdgeType};
+use petgraph::{graph::NodeIndex, EdgeType, Graph};
 
 pub fn exclusive_neighborhood<N, E, Ty>(
     graph: &Graph<N, E, Ty>,
@@ -45,4 +45,3 @@ pub fn insert_neighborhood(
         .copied()
         .collect()
 }
-

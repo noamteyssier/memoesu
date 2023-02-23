@@ -1,8 +1,10 @@
-use std::fmt::Debug;
-use rayon::prelude::*;
-use petgraph::{graph::NodeIndex, Graph, EdgeType};
+use crate::utils::{
+    exclusive_neighborhood, insert_neighborhood, insert_subgraph, modify_extension,
+};
 use hashbrown::HashSet;
-use crate::utils::{exclusive_neighborhood, insert_subgraph, modify_extension, insert_neighborhood};
+use petgraph::{graph::NodeIndex, EdgeType, Graph};
+use rayon::prelude::*;
+use std::fmt::Debug;
 
 pub fn enumerated_search<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize) -> Vec<HashSet<NodeIndex>>
 where
@@ -45,8 +47,7 @@ fn extend_subgraph<N, E, Ty>(
     current_neighborhood: &HashSet<NodeIndex>,
     v: NodeIndex,
     k: usize,
-) 
-where
+) where
     Ty: EdgeType,
 {
     if subgraph.len() == k {
@@ -76,7 +77,6 @@ where
 #[cfg(test)]
 mod testing {
 
-
     #[test]
     fn build_undirected_test_graph() {
         let edges = [
@@ -90,7 +90,5 @@ mod testing {
             (7, 2),
             (8, 2),
         ];
-
-
     }
 }
