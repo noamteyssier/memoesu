@@ -18,17 +18,24 @@ use petgraph_gen::random_gnp_graph;
 use rayon::prelude::*;
 use graph6_rs::write_graph6;
 
+use graph_canon::CanonLabeling;
+
 use crate::canon::IntoSubgraph;
 
-fn assemble_map<N, E>(graph: &Graph<N, E>, subgraph_indices: Vec<HashSet<NodeIndex>>) -> HashMap<CanonGraph<(), ()>, usize> 
+fn assemble_map<N, E>(graph: &Graph<N, E>, subgraph_indices: Vec<HashSet<NodeIndex>>) -> HashMap<CanonLabeling, usize> 
 where
     N: Debug + Clone + Send + Sync,
     E: Debug + Clone + Send + Sync,
 {
+    // let subgraphs = subgraph_indices
+    //     .into_par_iter()
+    //     .map(|indices| graph.into_subgraph(&indices))
+    //     .map(canonical_form)
+    //     .collect::<Vec<_>>();
     let subgraphs = subgraph_indices
         .into_par_iter()
         .map(|indices| graph.into_subgraph(&indices))
-        .map(canonical_form)
+        .map(|g| CanonLabeling::new(&g))
         .collect::<Vec<_>>();
 
     let mut sg_map = HashMap::new();
@@ -39,7 +46,7 @@ where
     sg_map
 }
 
-fn run_enumerated<N, E>(graph: &Graph<N, E>, k: usize) -> HashMap<CanonGraph<(), ()>, usize> 
+fn run_enumerated<N, E>(graph: &Graph<N, E>, k: usize) -> HashMap<CanonLabeling, usize> 
 where
     N: Debug + Clone + Send + Sync,
     E: Debug + Clone + Send + Sync,
@@ -50,7 +57,7 @@ where
     assemble_map(graph, subgraph_indices)
 }
 
-fn run_random_enumerated<N, E>(graph: &Graph<N, E>, k: usize, p: f64, seed: usize) -> HashMap<CanonGraph<(), ()>, usize> 
+fn run_random_enumerated<N, E>(graph: &Graph<N, E>, k: usize, p: f64, seed: usize) -> HashMap<CanonLabeling, usize> 
 where
     N: Debug + Clone + Send + Sync,
     E: Debug + Clone + Send + Sync,
@@ -61,26 +68,13 @@ where
     assemble_map(graph, subgraph_indices)
 }
 
-fn graph_to_bitvec(graph: &CanonGraph<(), ()>) -> Vec<usize> {
-    let matrix = graph.adjacency_matrix();
-    (0..matrix.len())
-        .map(|x| if matrix.contains(x) {1} else {0})
-        .collect()
-}
-
-fn graph_to_repr(graph: &CanonGraph<(), ()>, k: usize, is_directed: bool) -> String {
-    let bv = graph_to_bitvec(graph);
-    write_graph6(bv, k, is_directed)
-}
-
-
 fn main() {
     let k = 3;
     let mut rng = ChaChaRng::seed_from_u64(0);
-    let graph: Graph<(), (), Directed> = random_gnp_graph(&mut rng, 200, 0.5);
+    let graph: Graph<(), (), Directed> = random_gnp_graph(&mut rng, 100, 0.5);
     
     let full_sg_map = run_enumerated(&graph, k);
-    let partial_sg_map = run_random_enumerated(&graph, k, 0.20, 0);
+    let partial_sg_map = run_random_enumerated(&graph, k, 0.5, 0);
 
     println!("{} {}", full_sg_map.len(), partial_sg_map.len());
 
@@ -88,13 +82,14 @@ fn main() {
     let partial_sg_total = partial_sg_map.values().sum::<usize>();
 
     for subgraph in full_sg_map.keys() {
+        let signature = write_graph6(subgraph.flat_adjacency(), k, true);
         let full_count = full_sg_map.get(subgraph).unwrap();
-        let partial_count = partial_sg_map.get(subgraph).unwrap();
+        let partial_count = partial_sg_map.get(subgraph).unwrap_or(&0);
         let full_frequency = *full_count as f64 / full_sg_total as f64;
         let partial_frequency = *partial_count as f64 / partial_sg_total as f64;
 
-        let signature = graph_to_repr(subgraph, k, true);
         println!("{}\t{}\t{}\t{}\t{}", signature, full_count, partial_count, full_frequency, partial_frequency);
+        // println!("{}", signature);
     }
 
 }
