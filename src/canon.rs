@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-use petgraph::{graph::{NodeIndex, IndexType}, Graph, EdgeType};
+use petgraph::{graph::NodeIndex, Graph, EdgeType};
 use hashbrown::{HashMap, HashSet};
 use nauty_pet::prelude::CanonGraph;
 

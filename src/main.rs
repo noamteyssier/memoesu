@@ -16,7 +16,7 @@ use crate::canon::IntoSubgraph;
 fn main() {
     let k = 3;
     let mut rng = rand::thread_rng();
-    let graph: Graph<(), (), Directed> = random_gnp_graph(&mut rng, 1000, 0.2);
+    let graph: Graph<(), (), Directed> = random_gnp_graph(&mut rng, 100, 0.2);
 
     eprintln!("Starting Search...");
     let subgraph_indices = enumerated_search(&graph, k);
