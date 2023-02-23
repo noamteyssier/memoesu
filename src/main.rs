@@ -5,15 +5,13 @@ mod utils;
 
 use std::fmt::Debug;
 
-use canon::canonical_form;
 use esu::enumerated_search;
-use nauty_pet::prelude::CanonGraph;
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 use rand_esu::random_enumerated_search;
 
 use hashbrown::{HashMap, HashSet};
-use petgraph::{Graph, Directed, visit::GetAdjacencyMatrix, graph::NodeIndex};
+use petgraph::{Graph, Directed, graph::NodeIndex};
 use petgraph_gen::random_gnp_graph;
 use rayon::prelude::*;
 use graph6_rs::write_graph6;
@@ -27,11 +25,6 @@ where
     N: Debug + Clone + Send + Sync,
     E: Debug + Clone + Send + Sync,
 {
-    // let subgraphs = subgraph_indices
-    //     .into_par_iter()
-    //     .map(|indices| graph.into_subgraph(&indices))
-    //     .map(canonical_form)
-    //     .collect::<Vec<_>>();
     let subgraphs = subgraph_indices
         .into_par_iter()
         .map(|indices| graph.into_subgraph(&indices))
