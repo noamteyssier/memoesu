@@ -1,65 +1,51 @@
-use crate::utils::{
-    exclusive_neighborhood, insert_neighborhood, insert_subgraph, modify_extension,
-};
+use crate::utils::{initial_extension, initial_neighborhood, pop_extension, append_subgraph, exclusive_neighborhood, append_exclusive, overwrite_extension};
 use hashbrown::HashSet;
 use petgraph::{graph::NodeIndex, EdgeType, Graph};
 use rand::Rng;
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use rayon::prelude::*;
-use std::fmt::Debug;
 
-pub fn random_enumerated_search<N, E, Ty>(
+pub fn random_enumerate_subgraphs<N, E, Ty>(
     graph: &Graph<N, E, Ty>,
     k: usize,
     p: f64,
     seed: usize,
 ) -> Vec<HashSet<NodeIndex>>
 where
-    N: Debug + Sync,
-    E: Debug + Sync,
+    N: Sync,
+    E: Sync,
     Ty: EdgeType + Sync,
 {
-    graph
-        .node_indices()
+    let all_subgraphs = graph.node_indices()
         .into_iter()
-        .enumerate()
         .par_bridge()
-        .map(|(idx, v)| {
-            let mut rng = ChaCha8Rng::seed_from_u64(seed as u64 + idx as u64);
+        .map(|v| {
+            let mut rng = ChaCha8Rng::seed_from_u64(seed as u64 + v.index() as u64);
             let mut all_subgraphs = Vec::new();
-            let v_subgraph = HashSet::from_iter(vec![v]);
-            let mut v_extension = graph
-                .neighbors(v)
-                .filter(|&w| w.index() > v.index())
-                .collect::<HashSet<_>>();
-            let current_neighborhood = graph.neighbors(v).collect::<HashSet<_>>();
-
+            let mut subgraph = HashSet::new();
+            subgraph.insert(v);
+            let mut ext = initial_extension(graph, &v);
+            let cnh = initial_neighborhood(&ext, &v);
             if rng.gen::<f64>() < p {
                 random_extend_subgraph(
-                    &mut all_subgraphs,
-                    graph,
-                    &v_subgraph,
-                    &mut v_extension,
-                    &current_neighborhood,
-                    v,
-                    k,
-                    p,
-                    &mut rng,
+                    graph, &mut all_subgraphs, &mut subgraph, &mut ext, &cnh, &v, k, p, &mut rng
                 );
             }
             all_subgraphs
         })
         .flatten()
-        .collect::<Vec<_>>()
+        .collect::<Vec<HashSet<NodeIndex>>>();
+    // println!("Subgraphs found: {}", all_subgraphs.len());
+    all_subgraphs
 }
 
 fn random_extend_subgraph<N, E, Ty, R>(
-    all_subgraphs: &mut Vec<HashSet<NodeIndex>>,
     graph: &Graph<N, E, Ty>,
-    subgraph: &HashSet<NodeIndex>,
-    extension: &mut HashSet<NodeIndex>,
-    current_neighborhood: &HashSet<NodeIndex>,
-    v: NodeIndex,
+    all_subgraphs: &mut Vec<HashSet<NodeIndex>>,
+    subgraph: &HashSet<NodeIndex>, 
+    ext: &mut HashSet<NodeIndex>, 
+    cnh: &HashSet<NodeIndex>,
+    v: &NodeIndex,
     k: usize,
     p: f64,
     rng: &mut R,
@@ -67,32 +53,35 @@ fn random_extend_subgraph<N, E, Ty, R>(
     Ty: EdgeType,
     R: Rng + Sync,
 {
-    if subgraph.len() == k {
-        all_subgraphs.push(subgraph.clone());
-    } else {
-        while !extension.is_empty() {
-            let w = *extension.iter().next().unwrap();
-            extension.remove(&w);
+    if subgraph.len() < k {
+        while !ext.is_empty() {
+            let w = pop_extension(ext);
+            let new_sg = append_subgraph(subgraph, &w);
+            let exc = exclusive_neighborhood(graph, cnh, &w);
+            let new_cnh = append_exclusive(cnh, &exc);
+            let mut new_ext = overwrite_extension(&exc, ext, v, &w);
 
-            let e_neighborhood = exclusive_neighborhood(graph, subgraph, current_neighborhood, w);
-            let w_subgraph = insert_subgraph(subgraph, w);
-            let mut w_extension = modify_extension(extension, &e_neighborhood, w);
-            let w_current_neighborhood = insert_neighborhood(current_neighborhood, &e_neighborhood);
+            // let mut tmp_sg = new_sg.iter().map(|i| i.index()).collect::<Vec<_>>();
+            // let mut tmp_exc = exc.iter().map(|i| i.index()).collect::<Vec<_>>();
+            // let mut tmp_cnh = new_cnh.iter().map(|i| i.index()).collect::<Vec<_>>();
+            // let mut tmp_ext = new_ext.iter().map(|i| i.index()).collect::<Vec<_>>();
+            // tmp_sg.sort();
+            // tmp_exc.sort();
+            // tmp_cnh.sort();
+            // tmp_ext.sort();
+
+            // println!(">> {:?}", tmp_sg);
+            // println!("\t  W -> {}", w.index() + 1);
+            // println!("\tEXC -> {:?}", tmp_exc);
+            // println!("\tCNH -> {:?}", tmp_cnh);
+            // println!("\tEXT -> {:?}", tmp_ext);
 
             if rng.gen::<f64>() < p {
-                random_extend_subgraph(
-                    all_subgraphs,
-                    graph,
-                    &w_subgraph,
-                    &mut w_extension,
-                    &w_current_neighborhood,
-                    v,
-                    k,
-                    p,
-                    rng,
-                );
+                random_extend_subgraph(graph, all_subgraphs, &new_sg, &mut new_ext, &new_cnh, &w, k, p, rng);
             }
         }
+    } else {
+        all_subgraphs.push(subgraph.clone());
     }
 }
 

@@ -3,21 +3,16 @@ mod esu;
 mod rand_esu;
 mod utils;
 
-use std::fmt::Debug;
+use std::{fmt::Debug, io::BufRead};
 
-use esu::enumerated_search;
-use rand::SeedableRng;
-use rand_chacha::ChaChaRng;
-use rand_esu::random_enumerated_search;
+use esu::enumerate_subgraphs;
+use rand_esu::random_enumerate_subgraphs;
 
 use graph6_rs::write_graph6;
 use hashbrown::{HashMap, HashSet};
 use petgraph::{graph::NodeIndex, Directed, Graph};
-use petgraph_gen::random_gnp_graph;
 use rayon::prelude::*;
-
 use graph_canon::CanonLabeling;
-
 use crate::canon::IntoSubgraph;
 
 fn assemble_map<N, E>(
@@ -48,7 +43,7 @@ where
     E: Debug + Clone + Send + Sync,
 {
     eprintln!("Running complete enumerated search...");
-    let subgraph_indices = enumerated_search(graph, k);
+    let subgraph_indices = enumerate_subgraphs(graph, k);
     eprintln!("Subgraphs found: {}", subgraph_indices.len());
     assemble_map(graph, subgraph_indices)
 }
@@ -64,19 +59,31 @@ where
     E: Debug + Clone + Send + Sync,
 {
     eprintln!("Running partial enumerated search...");
-    let subgraph_indices = random_enumerated_search(graph, k, p, seed);
+    let subgraph_indices = random_enumerate_subgraphs(graph, k, p, seed);
     eprintln!("Subgraphs found: {}", subgraph_indices.len());
     assemble_map(graph, subgraph_indices)
 }
 
+fn load_graph(filepath: &str) -> Graph<(), (), Directed> {
+    let file = std::fs::File::open(filepath).unwrap();
+    let reader = std::io::BufReader::new(file);
+    let mut edges = Vec::new();
+    for line in reader.lines() {
+        let line = line.unwrap();
+        let mut split = line.split_whitespace();
+        let u = split.next().unwrap().parse::<u32>().unwrap();
+        let v = split.next().unwrap().parse::<u32>().unwrap();
+        edges.push((u, v));
+    }
+    Graph::from_edges(&edges)
+}
+
 fn main() {
-    let k = 3;
-    let mut rng = ChaChaRng::seed_from_u64(0);
-    let graph: Graph<(), (), Directed> = random_gnp_graph(&mut rng, 100, 0.5);
+    let k = 4;
+    let graph = load_graph("example/yeast.txt");
 
     let full_sg_map = run_enumerated(&graph, k);
-    let partial_sg_map = run_random_enumerated(&graph, k, 0.5, 0);
-
+    let partial_sg_map = run_random_enumerated(&graph, k, 0.7, 0);
     println!("{} {}", full_sg_map.len(), partial_sg_map.len());
 
     let full_sg_total = full_sg_map.values().sum::<usize>();
