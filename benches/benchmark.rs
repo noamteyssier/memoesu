@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use petgraph::graph::NodeIndex;
 use hashbrown::HashSet;
+use petgraph::graph::NodeIndex;
 
 /// takes the union of two sets
 fn append_exclusive_orig(cnh: &HashSet<NodeIndex>, exc: &HashSet<NodeIndex>) -> HashSet<NodeIndex> {
@@ -40,21 +40,36 @@ fn overwrite_extension_new(
 }
 
 pub fn benchmark_append_exclusive(c: &mut Criterion) {
-    let cnh = (0..8).map(|i| NodeIndex::new(i)).collect::<HashSet<NodeIndex>>();
-    let exc = (7..10).map(|i| NodeIndex::new(i)).collect::<HashSet<NodeIndex>>();
-    c.bench_function("append_exclusive_orig", |b| b.iter(|| {
-        append_exclusive_orig(&cnh, &exc);
-    }));
-    c.bench_function("append_exclusive_new", |b| b.iter(|| {
-        append_exclusive_new(&cnh, &exc);
-    }));
+    let cnh = (0..8)
+        .map(|i| NodeIndex::new(i))
+        .collect::<HashSet<NodeIndex>>();
+    let exc = (7..10)
+        .map(|i| NodeIndex::new(i))
+        .collect::<HashSet<NodeIndex>>();
+    c.bench_function("append_exclusive_orig", |b| {
+        b.iter(|| {
+            append_exclusive_orig(&cnh, &exc);
+        })
+    });
+    c.bench_function("append_exclusive_new", |b| {
+        b.iter(|| {
+            append_exclusive_new(&cnh, &exc);
+        })
+    });
 
-    assert_eq!(append_exclusive_orig(&cnh, &exc), append_exclusive_new(&cnh, &exc));
+    assert_eq!(
+        append_exclusive_orig(&cnh, &exc),
+        append_exclusive_new(&cnh, &exc)
+    );
 }
 
 pub fn benchmark_overwrite_extension(c: &mut Criterion) {
-    let exc = (7..10).map(|i| NodeIndex::new(i)).collect::<HashSet<NodeIndex>>();
-    let ext = (1..8).map(|i| NodeIndex::new(i)).collect::<HashSet<NodeIndex>>();
+    let exc = (7..10)
+        .map(|i| NodeIndex::new(i))
+        .collect::<HashSet<NodeIndex>>();
+    let ext = (1..8)
+        .map(|i| NodeIndex::new(i))
+        .collect::<HashSet<NodeIndex>>();
     let v = NodeIndex::new(0);
     let w = NodeIndex::new(6);
 
@@ -72,15 +87,18 @@ pub fn benchmark_overwrite_extension(c: &mut Criterion) {
 
     // assert_eq!(overwrite_extension(&exc, &ext, &v, &w), overwrite_extension_new(&exc, &ext, &v, &w));
 
-    c.bench_function("overwrite_extension_orig", |b| b.iter(|| {
-        overwrite_extension(&exc, &ext, &v, &w);
-    }));
-    c.bench_function("overwrite_extension_new", |b| b.iter(|| {
-        overwrite_extension_new(&exc, &ext, &v, &w);
-    }));
+    c.bench_function("overwrite_extension_orig", |b| {
+        b.iter(|| {
+            overwrite_extension(&exc, &ext, &v, &w);
+        })
+    });
+    c.bench_function("overwrite_extension_new", |b| {
+        b.iter(|| {
+            overwrite_extension_new(&exc, &ext, &v, &w);
+        })
+    });
 }
 
 // criterion_group!(benches, benchmark_append_exclusive);
 criterion_group!(benches, benchmark_overwrite_extension);
 criterion_main!(benches);
-
