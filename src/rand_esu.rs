@@ -19,8 +19,6 @@ where
     E: Sync,
     Ty: EdgeType + Sync,
 {
-    
-    // println!("Subgraphs found: {}", all_subgraphs.len());
     graph
         .node_indices()
         .into_iter()
