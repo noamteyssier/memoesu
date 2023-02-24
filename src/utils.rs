@@ -2,7 +2,7 @@ use hashbrown::HashSet;
 use petgraph::{graph::NodeIndex, EdgeType, Graph};
 
 pub fn pop_extension(ext: &mut HashSet<NodeIndex>) -> NodeIndex {
-    let w = ext.iter().next().unwrap().clone();
+    let w = *ext.iter().next().unwrap();
     ext.remove(&w);
     w
 }

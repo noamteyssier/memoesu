@@ -12,7 +12,9 @@ where
     E: Sync,
     Ty: EdgeType + Sync,
 {
-    let all_subgraphs = graph
+    
+    // println!("Subgraphs found: {}", all_subgraphs.len());
+    graph
         .node_indices()
         .into_iter()
         .par_bridge()
@@ -34,9 +36,7 @@ where
             all_subgraphs
         })
         .flatten()
-        .collect::<Vec<HashSet<NodeIndex>>>();
-    // println!("Subgraphs found: {}", all_subgraphs.len());
-    all_subgraphs
+        .collect::<Vec<HashSet<NodeIndex>>>()
 }
 
 fn extend_subgraph<N, E, Ty>(
