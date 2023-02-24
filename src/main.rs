@@ -8,12 +8,12 @@ use std::{fmt::Debug, io::BufRead};
 use esu::enumerate_subgraphs;
 use rand_esu::random_enumerate_subgraphs;
 
+use crate::canon::IntoSubgraph;
 use graph6_rs::write_graph6;
+use graph_canon::CanonLabeling;
 use hashbrown::{HashMap, HashSet};
 use petgraph::{graph::NodeIndex, Directed, Graph};
 use rayon::prelude::*;
-use graph_canon::CanonLabeling;
-use crate::canon::IntoSubgraph;
 
 fn assemble_map<N, E>(
     graph: &Graph<N, E>,

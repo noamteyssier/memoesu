@@ -31,9 +31,10 @@ pub fn initial_neighborhood(ext: &HashSet<NodeIndex>, v: &NodeIndex) -> HashSet<
 }
 
 pub fn exclusive_neighborhood<N, E, Ty>(
-    graph: &Graph<N, E, Ty>, 
+    graph: &Graph<N, E, Ty>,
     cn: &HashSet<NodeIndex>,
-    w: &NodeIndex) -> HashSet<NodeIndex>
+    w: &NodeIndex,
+) -> HashSet<NodeIndex>
 where
     Ty: EdgeType,
 {
@@ -47,10 +48,9 @@ pub fn overwrite_extension(
     exc: &HashSet<NodeIndex>,
     ext: &HashSet<NodeIndex>,
     v: &NodeIndex,
-    w: &NodeIndex) -> HashSet<NodeIndex>
-{
-    ext
-        .union(exc)
+    w: &NodeIndex,
+) -> HashSet<NodeIndex> {
+    ext.union(exc)
         .filter(|u| *u > v)
         .filter(|u| *u != w)
         .cloned()

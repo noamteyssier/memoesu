@@ -1,4 +1,7 @@
-use crate::utils::{initial_extension, initial_neighborhood, pop_extension, append_subgraph, exclusive_neighborhood, append_exclusive, overwrite_extension};
+use crate::utils::{
+    append_exclusive, append_subgraph, exclusive_neighborhood, initial_extension,
+    initial_neighborhood, overwrite_extension, pop_extension,
+};
 use hashbrown::HashSet;
 use petgraph::{graph::NodeIndex, EdgeType, Graph};
 use rand::Rng;
@@ -16,7 +19,8 @@ where
     E: Sync,
     Ty: EdgeType + Sync,
 {
-    let all_subgraphs = graph.node_indices()
+    let all_subgraphs = graph
+        .node_indices()
         .into_iter()
         .par_bridge()
         .map(|v| {
@@ -28,7 +32,15 @@ where
             let cnh = initial_neighborhood(&ext, &v);
             if rng.gen::<f64>() < p {
                 random_extend_subgraph(
-                    graph, &mut all_subgraphs, &mut subgraph, &mut ext, &cnh, &v, k, p, &mut rng
+                    graph,
+                    &mut all_subgraphs,
+                    &mut subgraph,
+                    &mut ext,
+                    &cnh,
+                    &v,
+                    k,
+                    p,
+                    &mut rng,
                 );
             }
             all_subgraphs
@@ -42,8 +54,8 @@ where
 fn random_extend_subgraph<N, E, Ty, R>(
     graph: &Graph<N, E, Ty>,
     all_subgraphs: &mut Vec<HashSet<NodeIndex>>,
-    subgraph: &HashSet<NodeIndex>, 
-    ext: &mut HashSet<NodeIndex>, 
+    subgraph: &HashSet<NodeIndex>,
+    ext: &mut HashSet<NodeIndex>,
     cnh: &HashSet<NodeIndex>,
     v: &NodeIndex,
     k: usize,
@@ -77,7 +89,17 @@ fn random_extend_subgraph<N, E, Ty, R>(
             // println!("\tEXT -> {:?}", tmp_ext);
 
             if rng.gen::<f64>() < p {
-                random_extend_subgraph(graph, all_subgraphs, &new_sg, &mut new_ext, &new_cnh, &w, k, p, rng);
+                random_extend_subgraph(
+                    graph,
+                    all_subgraphs,
+                    &new_sg,
+                    &mut new_ext,
+                    &new_cnh,
+                    &w,
+                    k,
+                    p,
+                    rng,
+                );
             }
         }
     } else {

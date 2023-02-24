@@ -1,8 +1,10 @@
+use crate::utils::{
+    append_exclusive, append_subgraph, exclusive_neighborhood, initial_extension,
+    initial_neighborhood, overwrite_extension, pop_extension,
+};
 use hashbrown::HashSet;
 use petgraph::{graph::NodeIndex, EdgeType, Graph};
 use rayon::prelude::*;
-use crate::utils::{initial_extension, initial_neighborhood, pop_extension, append_subgraph, exclusive_neighborhood, append_exclusive, overwrite_extension};
-
 
 pub fn enumerate_subgraphs<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize) -> Vec<HashSet<NodeIndex>>
 where
@@ -10,7 +12,8 @@ where
     E: Sync,
     Ty: EdgeType + Sync,
 {
-    let all_subgraphs = graph.node_indices()
+    let all_subgraphs = graph
+        .node_indices()
         .into_iter()
         .par_bridge()
         .map(|v| {
@@ -19,7 +22,15 @@ where
             subgraph.insert(v);
             let mut ext = initial_extension(graph, &v);
             let cnh = initial_neighborhood(&ext, &v);
-            extend_subgraph(graph, &mut all_subgraphs, &mut subgraph, &mut ext, &cnh, &v, k);
+            extend_subgraph(
+                graph,
+                &mut all_subgraphs,
+                &mut subgraph,
+                &mut ext,
+                &cnh,
+                &v,
+                k,
+            );
             all_subgraphs
         })
         .flatten()
@@ -31,8 +42,8 @@ where
 fn extend_subgraph<N, E, Ty>(
     graph: &Graph<N, E, Ty>,
     all_subgraphs: &mut Vec<HashSet<NodeIndex>>,
-    subgraph: &HashSet<NodeIndex>, 
-    ext: &mut HashSet<NodeIndex>, 
+    subgraph: &HashSet<NodeIndex>,
+    ext: &mut HashSet<NodeIndex>,
     cnh: &HashSet<NodeIndex>,
     v: &NodeIndex,
     k: usize,
@@ -71,7 +82,7 @@ fn extend_subgraph<N, E, Ty>(
 
 #[cfg(test)]
 mod testing {
-    use petgraph::{Graph, Undirected, Directed};
+    use petgraph::{Directed, Graph, Undirected};
 
     #[test]
     fn test_undirected_graph() {
