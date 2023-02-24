@@ -12,7 +12,7 @@ use subgraph::build_subgraph;
 use graph6_rs::write_graph6;
 use graph_canon::CanonLabeling;
 use hashbrown::{HashMap, HashSet};
-use petgraph::{graph::NodeIndex, Directed, Graph, EdgeType, visit::GetAdjacencyMatrix};
+use petgraph::{graph::NodeIndex, visit::GetAdjacencyMatrix, Directed, EdgeType, Graph};
 use rayon::prelude::*;
 
 fn assemble_map<N, E, Ty>(

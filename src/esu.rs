@@ -12,7 +12,6 @@ where
     E: Sync,
     Ty: EdgeType + Sync,
 {
-    
     graph
         .node_indices()
         .into_iter()
