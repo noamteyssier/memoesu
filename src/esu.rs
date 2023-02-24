@@ -22,15 +22,7 @@ where
             subgraph.insert(v);
             let mut ext = initial_extension(graph, &v);
             let cnh = initial_neighborhood(&ext, &v);
-            extend_subgraph(
-                graph,
-                &mut all_subgraphs,
-                &subgraph,
-                &mut ext,
-                &cnh,
-                &v,
-                k,
-            );
+            extend_subgraph(graph, &mut all_subgraphs, &subgraph, &mut ext, &cnh, &v, k);
             all_subgraphs
         })
         .flatten()
