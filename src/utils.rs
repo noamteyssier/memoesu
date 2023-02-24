@@ -14,7 +14,9 @@ pub fn append_subgraph(subgraph: &HashSet<NodeIndex>, w: &NodeIndex) -> HashSet<
 }
 
 pub fn append_exclusive(cnh: &HashSet<NodeIndex>, exc: &HashSet<NodeIndex>) -> HashSet<NodeIndex> {
-    cnh.union(exc).cloned().collect::<HashSet<NodeIndex>>()
+    let mut new = cnh.clone();
+    new.extend(exc);
+    new
 }
 
 pub fn initial_extension<N, E, Ty>(graph: &Graph<N, E, Ty>, v: &NodeIndex) -> HashSet<NodeIndex>
@@ -50,11 +52,10 @@ pub fn overwrite_extension(
     v: &NodeIndex,
     w: &NodeIndex,
 ) -> HashSet<NodeIndex> {
-    ext.union(exc)
-        .filter(|u| *u > v)
-        .filter(|u| *u != w)
-        .cloned()
-        .collect::<HashSet<NodeIndex>>()
+    let mut new = ext.clone();
+    new.remove(w);
+    new.extend(exc.iter().filter(|u| *u > v));
+    new
 }
 
 #[cfg(test)]
