@@ -25,7 +25,7 @@ where
             extend_subgraph(
                 graph,
                 &mut all_subgraphs,
-                &mut subgraph,
+                &subgraph,
                 &mut ext,
                 &cnh,
                 &v,
