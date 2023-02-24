@@ -24,7 +24,7 @@ fn populate_edges<Ty: EdgeType>(
 ) {
     for (idx, g_idx) in indices.iter().enumerate() {
         for (jdx, g_jdx) in indices.iter().enumerate() {
-            if adj.contains((g_idx * n + g_jdx) as usize) {
+            if adj.contains(g_idx * n + g_jdx) {
                 graph.add_edge(NodeIndex::new(idx), NodeIndex::new(jdx), ());
             }
         }
