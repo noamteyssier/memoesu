@@ -1,3 +1,4 @@
+mod bitgraph;
 mod esu;
 mod rand_esu;
 mod subgraph;
