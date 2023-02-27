@@ -6,16 +6,16 @@ use petgraph::{EdgeType, Graph, graph::NodeIndex};
 #[derive(Debug)]
 pub struct BitGraph {
     /// Adjacency list for undirected (all) edges
-    pub u_adj: Vec<FixedBitSet>,
+    u_adj: Vec<FixedBitSet>,
 
     /// Adjacency list for directed (outgoing) edges
-    pub d_adj: Vec<FixedBitSet>,
+    d_adj: Vec<FixedBitSet>,
 
     /// Number of nodes in the graph
     pub n: usize,
 }
 impl BitGraph {
-    fn from_graph<N, E, Ty: EdgeType>(graph: &Graph<N, E, Ty>) -> Self {
+    pub fn from_graph<N, E, Ty: EdgeType>(graph: &Graph<N, E, Ty>) -> Self {
         let n = graph.node_count();
         let mut u_adj = Vec::with_capacity(n);
         let mut d_adj = Vec::with_capacity(n);
@@ -27,11 +27,11 @@ impl BitGraph {
         Self { u_adj, d_adj, n }
     }
 
-    fn neighbors(&self, v: usize) -> &FixedBitSet {
+    pub fn neighbors(&self, v: usize) -> &FixedBitSet {
         &self.u_adj[v]
     }
 
-    fn neighbors_directed(&self, v: usize) -> &FixedBitSet {
+    pub fn neighbors_directed(&self, v: usize) -> &FixedBitSet {
         &self.d_adj[v]
     }
 }
