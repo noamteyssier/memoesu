@@ -14,8 +14,8 @@ where
 {
     graph
         .node_indices()
-        .into_iter()
-        .par_bridge()
+        // .into_iter()
+        // .par_bridge()
         .map(|v| {
             let mut all_subgraphs = Vec::new();
             let mut subgraph = HashSet::new();

@@ -1,8 +1,10 @@
 mod bitgraph;
+mod bit_esu;
 mod esu;
 mod rand_esu;
 mod subgraph;
 mod utils;
+mod walker;
 
 use std::io::BufRead;
 
@@ -83,29 +85,30 @@ fn load_graph(filepath: &str) -> Graph<(), (), Directed> {
 }
 
 fn main() {
-    let k = 4;
-    let graph = load_graph("example/yeast.txt");
-    // let graph = load_graph("example/example.txt");
+    let k = 3;
+    // let graph = load_graph("example/yeast.txt");
+    let graph = load_graph("example/example.txt");
+    bit_esu::enumerate_subgraphs(&graph, k);
 
-    let full_sg_map = run_enumerated(&graph, k);
+    // let full_sg_map = run_enumerated(&graph, k);
     // println!("{}", full_sg_map.len());
-    let partial_sg_map = run_random_enumerated(&graph, k, 0.7, 0);
-    println!("{} {}", full_sg_map.len(), partial_sg_map.len());
+    // let partial_sg_map = run_random_enumerated(&graph, k, 0.7, 0);
+    // println!("{} {}", full_sg_map.len(), partial_sg_map.len());
 
-    let full_sg_total = full_sg_map.values().sum::<usize>();
-    let partial_sg_total = partial_sg_map.values().sum::<usize>();
+    // let full_sg_total = full_sg_map.values().sum::<usize>();
+    // let partial_sg_total = partial_sg_map.values().sum::<usize>();
 
-    for subgraph in full_sg_map.keys() {
-        let signature = write_graph6(subgraph.flat_adjacency(), k, true);
-        let full_count = full_sg_map.get(subgraph).unwrap();
-        let partial_count = partial_sg_map.get(subgraph).unwrap_or(&0);
-        let full_frequency = *full_count as f64 / full_sg_total as f64;
-        let partial_frequency = *partial_count as f64 / partial_sg_total as f64;
+    // for subgraph in full_sg_map.keys() {
+    //     let signature = write_graph6(subgraph.flat_adjacency(), k, true);
+    //     let full_count = full_sg_map.get(subgraph).unwrap();
+    //     let partial_count = partial_sg_map.get(subgraph).unwrap_or(&0);
+    //     let full_frequency = *full_count as f64 / full_sg_total as f64;
+    //     let partial_frequency = *partial_count as f64 / partial_sg_total as f64;
 
-        println!(
-            "{}\t{}\t{}\t{}\t{}",
-            signature, full_count, partial_count, full_frequency, partial_frequency
-        );
-        // println!("{}", signature);
-    }
+    //     println!(
+    //         "{}\t{}\t{}\t{}\t{}",
+    //         signature, full_count, partial_count, full_frequency, partial_frequency
+    //     );
+    //     // println!("{}", signature);
+    // }
 }
