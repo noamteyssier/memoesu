@@ -1,130 +1,8 @@
-use std::{fmt::Debug, ops::Range};
+use std::fmt::Debug;
 
 use fixedbitset::FixedBitSet;
+use multibitset::MultiBitSet;
 use crate::bitgraph::BitGraph;
-
-pub struct FlatBitSet {
-    data: FixedBitSet,
-    n: usize,
-    k: usize,
-}
-impl Debug for FlatBitSet {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut string = String::new();
-        string.push_str("FlatBitSet {\n");
-        for i in 0..self.k {
-            string.push_str(&format!("  {}: {:?}\n", i, self.get_ones_at_row(i).collect::<Vec<_>>()))
-        }
-        string.push_str("}");
-        write!(f, "{}", string)
-    }
-}
-impl FlatBitSet {
-    pub fn new(n: usize, k: usize) -> Self {
-        let data = FixedBitSet::with_capacity(n * k);
-        Self { data, n, k }
-    }
-
-    /// Performs an inplace union of set at depth `u` with set at depth `v`.
-    pub fn union(&mut self, u: usize, v: usize) {
-        let u_offset = u * self.n;
-        let v_offset = v * self.n;
-        for i in 0..self.n {
-            self.data.set(
-                u_offset + i, 
-                self.data[u_offset + i] || self.data[v_offset + i]
-            );
-        }
-    }
-
-    /// Performs an inplace union of set at depth `u` with an external `FixedBitSet`.
-    pub fn union_with(&mut self, u: usize, other: &FixedBitSet) {
-        let offset = u * self.n;
-        for i in 0..self.n {
-            self.data.set(
-                offset + i, 
-                self.data[offset + i] || other[i]
-            );
-        }
-    }
-
-    pub fn union_with_other(&mut self, u: usize, other: &Self, v: usize) {
-        let u_offset = u * self.n;
-        let v_offset = v * self.n;
-        for i in 0..self.n {
-            self.data.set(
-                u_offset + i, 
-                self.data[u_offset + i] || other.data[v_offset + i]
-            );
-        }
-    }
-
-    /// Performs an inplace intersection of set at depth `u` with set at depth `v`.
-    pub fn intersection(&mut self, u: usize, v: usize) {
-        let u_offset = u * self.n;
-        let v_offset = v * self.n;
-        for i in 0..self.n {
-            self.data.set(
-                u_offset + i, 
-                self.data[u_offset + i] && self.data[v_offset + i]
-            );
-        }
-    }
-
-    /// Performs an inplace difference of set at depth `u` with set at depth `v`.
-    pub fn difference(&mut self, u: usize, v: usize) {
-        let u_offset = u * self.n;
-        let v_offset = v * self.n;
-        for i in 0..self.n {
-            self.data.set(
-                u_offset + i, 
-                self.data[u_offset + i] && !self.data[v_offset + i]
-            );
-        }
-    }
-
-    pub fn difference_with_other(&mut self, u: usize, other: &Self, v: usize) {
-        let u_offset = u * self.n;
-        let v_offset = v * self.n;
-        for i in 0..self.n {
-            self.data.set(
-                u_offset + i, 
-                self.data[u_offset + i] && !other.data[v_offset + i]
-            );
-        }
-    }
-
-    /// Clears the set at depth `u`.
-    pub fn clear(&mut self, u: usize) {
-        let u_offset = u * self.n;
-        self.data.set_range(u_offset..u_offset + self.n, false);
-    }
-
-    /// Sets a bit at depth `depth` and index `v`.
-    pub fn set(&mut self, depth: usize, v: usize, enabled: bool) {
-        let offset = depth * self.n;
-        self.data.set(offset + v, enabled);
-    }
-
-    pub fn get(&self, depth: usize, v: usize) -> bool {
-        let offset = depth * self.n;
-        self.data[offset + v]
-    }
-
-    pub fn get_ones_at_row(&self, depth: usize) -> impl Iterator<Item = usize> + '_ {
-        let bounds_low = depth * self.n;
-        let bounds_high = bounds_low + self.n;
-        self.data
-            .ones()
-            .filter(move |&x| x >= bounds_low && x < bounds_high)
-            .map(move |x| x - bounds_low)
-    }
-
-    pub fn set_range(&mut self, depth: usize, range: Range<usize>, enabled: bool) {
-        let offset = depth * self.n;
-        self.data.set_range(offset + range.start..offset + range.end, enabled);
-    }
-}
 
 #[derive(Debug)]
 pub struct Walker<'a> {
@@ -135,13 +13,13 @@ pub struct Walker<'a> {
     sub: FixedBitSet,
 
     /// The extension of the current walk.
-    ext: FlatBitSet,
+    ext: MultiBitSet,
 
     /// The neighborhood of the current walk.
-    nbh: FlatBitSet,
+    nbh: MultiBitSet,
 
     /// The exclusive neighborhood of the current walk.
-    exc: FlatBitSet,
+    exc: MultiBitSet,
 
     /// The root of the walk.
     root: usize,
@@ -171,17 +49,18 @@ impl<'a> Walker<'a> {
 
         // Initialize the subgraph, extension, and neighborhood.
         let mut sub = Self::init_subgraph(root, n);
-        let mut ext = FlatBitSet::new(n, k);
-        let mut nbh = FlatBitSet::new(n, k);
-        let exc = FlatBitSet::new(n, k);
+        let mut ext = MultiBitSet::new(n, k);
+        let mut nbh = MultiBitSet::new(n, k);
+        let exc = MultiBitSet::new(n, k);
 
         // Insert the root into the subgraph
         sub.set(root, true);
 
         // Insert the roots neighbors into the extension
-        ext.union_with(0, &bitgraph.neighbors(root));
+        ext.inplace_external_union(0, bitgraph.neighbors(root));
         ext.set_range(0, 0..root+1, false);
-        nbh.union_with(0, &bitgraph.neighbors(root));
+
+        nbh.inplace_external_union(0, bitgraph.neighbors(root));
         nbh.set(0, root, true);
 
         Self {
@@ -213,7 +92,8 @@ impl<'a> Walker<'a> {
 
         // draw a new head from the extension
         self.head = self.ext
-            .get_ones_at_row(self.depth - 1)
+            .get_row(self.depth - 1)
+            .ones()
             .next().unwrap();
 
         // insert the head into the subgraph
@@ -221,27 +101,22 @@ impl<'a> Walker<'a> {
 
         // create the new extension at the depth
         // then remove the head from the extension
-        self.ext.union(self.depth, self.depth - 1);
+        self.ext.inplace_union(self.depth, self.depth - 1);
         self.ext.set(self.depth, self.head, false);
 
         // create the new neighborhood at the depth
-        self.nbh.union(self.depth, self.depth - 1);
+        self.nbh.inplace_union(self.depth, self.depth - 1);
 
         // create the new exclusive neighborhood at the depth
-        self.exc.union_with(self.depth, self.bitgraph.neighbors(self.head));
-        self.exc.difference_with_other(self.depth, &self.nbh, self.depth - 1);
+        self.exc.inplace_external_union(self.depth, self.bitgraph.neighbors(self.head));
+        self.exc.difference_with(&self.nbh, self.depth, self.depth-1);
         self.exc.set_range(self.depth, 0..self.root+1, false);
         
         // add the exclusive neighborhood to the extension and neighborhood
-        self.ext.union_with_other(self.depth, &self.exc, self.depth);
-        self.nbh.union_with_other(self.depth, &self.exc, self.depth);
+        self.ext.union_with(&self.exc, self.depth, self.depth);
+        self.nbh.union_with(&self.exc, self.depth, self.depth);
 
-        // println!(">> Depth: {}", self.depth);
-        // println!("\n\n>> Descent to Depth: {}", self.depth);
-        // println!("Sub:\n{:?}", self.sub.ones().collect::<Vec<_>>());
-        // println!("Ext:\n{:?}", self.ext);
-        // println!("Nbh:\n{:?}", self.nbh);
-        // println!("Exc:\n{:?}", self.exc);
+        // self.debug(true);
     }
 
     pub fn ascend(&mut self) {
@@ -268,25 +143,39 @@ impl<'a> Walker<'a> {
         // decrement the depth
         self.depth -= 1;
 
-        // println!(">> Depth: {}", self.depth);
-        // println!("\n\n>> Ascend to Depth: {}", self.depth);
-        // println!("Sub:\n{:?}", self.sub.ones().collect::<Vec<_>>());
-        // println!("Ext:\n{:?}", self.ext);
-        // println!("Nbh:\n{:?}", self.nbh);
-        // println!("Exc:\n{:?}", self.exc);
+        // self.debug(false);
+    }
+
+    #[allow(dead_code)]
+    fn debug(&self, descend: bool) {
+        if descend {
+            println!("\n\n>> Descent to Depth: {}", self.depth);
+        } else {
+            println!("\n\n>> Ascend to Depth: {}", self.depth);
+        }
+        println!("Sub:\n{:?}", self.sub.ones().collect::<Vec<_>>());
+        println!("Ext:\n{}", self.ext.pprint());
+        println!("Nbh:\n{}", self.nbh.pprint());
+        println!("Exc:\n{}", self.exc.pprint());
+    }
+
+    #[allow(dead_code)]
+    fn debug_subgraph(&self) {
+        println!("Subgraph: {:?}", self.subgraph());
     }
 
     pub fn is_descending(&self) -> bool {
         self.depth < self.k - 1
     }
 
+    /// checks if the current depth has an extension
     pub fn has_extension(&self) -> bool {
-        self.ext.get_ones_at_row(self.depth).count() > 0
+        self.ext.get_row(self.depth).ones().next().is_some()
     }
 
     /// monitors the initial extension to determine completeness
     pub fn is_finished(&self) -> bool {
-        self.ext.get_ones_at_row(0).count() == 0
+        self.ext.get_row(0).ones().next().is_none()
     }
 
     pub fn subgraph(&self) -> Vec<usize> {
