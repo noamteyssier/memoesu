@@ -46,54 +46,93 @@ pub fn enumerate_subgraphs<N, E, Ty>(
     Ty: EdgeType,
 {
     let bitgraph = BitGraph::from_graph(graph);
-    let mut all_subgraphs = Vec::new();
+    let mut num_subgraphs = 0;
     for v in 0..bitgraph.n {
-        let mut walker = Walker::new(&bitgraph, v);
-        extend_subgraph(&bitgraph, &mut all_subgraphs, &mut walker, k);
-        // let sub = initial_subgraph(v, bitgraph.n);
-        // let mut ext = initial_extension(&bitgraph, v);
-        // let nbh = initial_neighborhood(&ext, v);
-        // extend_subgraph(&bitgraph, &mut all_subgraphs, &mut walker, v, k);
-        // break;
+        let mut walker = Walker::new(&bitgraph, v, k);
+        extend_subgraph(&mut num_subgraphs, &mut walker);
     }
-    // println!("Found {} subgraphs", all_subgraphs.len());
+    println!("Found {} subgraphs", num_subgraphs);
 }
 
 fn extend_subgraph(
-    bitgraph: &BitGraph,
-    all_subgraphs: &mut Vec<FixedBitSet>,
-    walker: &mut Walker,
-    k: usize) {
-
-    if walker.is_complete(k) {
-        println!("Found Subgraph!");
-    } else {
-        // println!("{:?}", walker);
-        while walker.is_searching() {
-            walker.step_down();
-            // println!("{:?}", walker);
-            extend_subgraph(bitgraph, all_subgraphs, walker, k);
-            // break;
-            // let w = walker.pop_extension();
-            // let n_sub = walker.append_subgraph(w);
-            // let w_exc = walker.exclusive_neighbors(bitgraph, w);
-            // let w_nbh = walker.append_exclusive(&w_exc);
-            // let w_ext = walker.overwrite_extension(&w_exc, w);
-            // walker.extend_subgraph(bitgraph, all_subgraphs, &n_sub, &mut w_ext, &w_nbh, v, k);
+    num_subgraphs: &mut usize,
+    walker: &mut Walker) 
+{
+    while !walker.is_finished() {
+        if walker.is_descending() {
+            if walker.has_extension() {
+                walker.descend();
+            } else {
+                walker.ascend();
+            }
+        } else {
+            // println!("Subgraph => {:?}", walker.subgraph());
+            *num_subgraphs += 1;
+            walker.ascend();
         }
     }
+}
 
-    // if sub.count_ones(..) < k {
-    //     while !ext.is_clear() {
-    //         let w = pop_extension(ext);
-    //         let n_sub = append_subgraph(sub, w);
-    //         let w_exc = exclusive_neighbors(bitgraph, nbh, w);
-    //         let w_nbh = append_exclusive(nbh, &w_exc);
-    //         let mut w_ext = overwrite_extension(&w_exc, ext, v, w);
-    //         extend_subgraph(bitgraph, all_subgraphs, &n_sub, &mut w_ext, &w_nbh, v, k);
-    //     }
+    // if walker.is_complete(k) {
+    //     println!("Found Subgraph!");
     // } else {
-    //     all_subgraphs.push(sub.to_owned());
+    //     // println!("{:?}", walker);
+    //     while walker.is_searching() {
+    //         walker.step_down();
+    //         // println!("{:?}", walker);
+    //         extend_subgraph(bitgraph, all_subgraphs, walker, k);
+    //         // break;
+    //         // let w = walker.pop_extension();
+    //         // let n_sub = walker.append_subgraph(w);
+    //         // let w_exc = walker.exclusive_neighbors(bitgraph, w);
+    //         // let w_nbh = walker.append_exclusive(&w_exc);
+    //         // let w_ext = walker.overwrite_extension(&w_exc, w);
+    //         // walker.extend_subgraph(bitgraph, all_subgraphs, &n_sub, &mut w_ext, &w_nbh, v, k);
+    //     }
     // }
 
-}
+    // // if sub.count_ones(..) < k {
+    // //     while !ext.is_clear() {
+    // //         let w = pop_extension(ext);
+    // //         let n_sub = append_subgraph(sub, w);
+    // //         let w_exc = exclusive_neighbors(bitgraph, nbh, w);
+    // //         let w_nbh = append_exclusive(nbh, &w_exc);
+    // //         let mut w_ext = overwrite_extension(&w_exc, ext, v, w);
+    // //         extend_subgraph(bitgraph, all_subgraphs, &n_sub, &mut w_ext, &w_nbh, v, k);
+    // //     }
+    // // } else {
+    // //     all_subgraphs.push(sub.to_owned());
+    // // }
+
+// }
+
+    // if walker.is_complete(k) {
+    //     println!("Found Subgraph!");
+    // } else {
+    //     // println!("{:?}", walker);
+    //     while walker.is_searching() {
+    //         walker.step_down();
+    //         // println!("{:?}", walker);
+    //         extend_subgraph(bitgraph, all_subgraphs, walker, k);
+    //         // break;
+    //         // let w = walker.pop_extension();
+    //         // let n_sub = walker.append_subgraph(w);
+    //         // let w_exc = walker.exclusive_neighbors(bitgraph, w);
+    //         // let w_nbh = walker.append_exclusive(&w_exc);
+    //         // let w_ext = walker.overwrite_extension(&w_exc, w);
+    //         // walker.extend_subgraph(bitgraph, all_subgraphs, &n_sub, &mut w_ext, &w_nbh, v, k);
+    //     }
+    // }
+
+    // // if sub.count_ones(..) < k {
+    // //     while !ext.is_clear() {
+    // //         let w = pop_extension(ext);
+    // //         let n_sub = append_subgraph(sub, w);
+    // //         let w_exc = exclusive_neighbors(bitgraph, nbh, w);
+    // //         let w_nbh = append_exclusive(nbh, &w_exc);
+    // //         let mut w_ext = overwrite_extension(&w_exc, ext, v, w);
+    // //         extend_subgraph(bitgraph, all_subgraphs, &n_sub, &mut w_ext, &w_nbh, v, k);
+    // //     }
+    // // } else {
+    // //     all_subgraphs.push(sub.to_owned());
+    // // }
