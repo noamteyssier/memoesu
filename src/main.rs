@@ -86,8 +86,8 @@ fn load_graph(filepath: &str) -> Graph<(), (), Directed> {
 
 fn main() {
     let k = 3;
-    // let graph = load_graph("example/yeast.txt");
-    let graph = load_graph("example/example.txt");
+    let graph = load_graph("example/yeast.txt");
+    // let graph = load_graph("example/example.txt");
     bit_esu::enumerate_subgraphs(&graph, k);
 
     // let full_sg_map = run_enumerated(&graph, k);
