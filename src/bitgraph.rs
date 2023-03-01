@@ -13,6 +13,9 @@ pub struct BitGraph {
 
     /// Number of nodes in the graph
     pub n: usize,
+
+    /// Is directed
+    pub is_directed: bool,
 }
 impl BitGraph {
     pub fn from_graph<N, E, Ty: EdgeType>(graph: &Graph<N, E, Ty>) -> Self {
@@ -24,7 +27,7 @@ impl BitGraph {
             u_adj.push(undirected_neighbors(graph, v_index));
             d_adj.push(directed_neighbors(graph, v_index));
         }
-        Self { u_adj, d_adj, n }
+        Self { u_adj, d_adj, n, is_directed: Ty::is_directed() }
     }
 
     pub fn neighbors(&self, v: usize) -> &FixedBitSet {
