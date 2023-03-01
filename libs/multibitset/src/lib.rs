@@ -50,16 +50,13 @@ impl MultiBitSet {
         self.data[i].set(j, enabled);
     }
 
-    /// Performs an inplace union of the bitsets at indices `i` with an external bitset `ext`
     pub fn inplace_external_union(&mut self, i: usize, ext: &FixedBitSet) {
-        // self.data[i].union_with(ext);
         self.data[i].union_with_unchecked(ext);
     }
 
     /// Performs an inplace difference of the bitsets at indices `i` with an external bitset `ext`
     pub fn inplace_external_difference(&mut self, i: usize, ext: &FixedBitSet) {
         self.data[i].difference_with(ext);
-        // self.data[i].difference_with_unchecked(ext);
     }
 
     /// Returns a mutable reference to the bitsets at indices `i` and `j`
@@ -85,7 +82,6 @@ impl MultiBitSet {
     /// Performs an inplace union of the bitsets at indices `i` and `j` onto the bitset at index `i`
     pub fn inplace_union(&mut self, i: usize, j: usize) {
         let (a, b) = self.mutable_references(i, j);
-        // a.union_with(b);
         a.union_with_unchecked(b);
     }
 
