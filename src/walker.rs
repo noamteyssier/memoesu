@@ -94,8 +94,6 @@ impl<'a> Walker<'a> {
 
     fn init_subgraph(root: usize, n: usize) -> Vec<usize> {
         let mut sub = Vec::with_capacity(n);
-        // let mut sub = FixedBitSet::with_capacity(n);
-        // sub.insert(root);
         sub.push(root);
         sub
     }
@@ -113,16 +111,7 @@ impl<'a> Walker<'a> {
             .next().unwrap();
 
         // insert the head into the subgraph
-        // self.sub.set(self.head, true);
         self.sub.push(self.head);
-
-        // // insert into the underlying nauty subgraph
-        // if self.bitgraph.neighbors_directed(self.head).contains(self.parent[self.depth]) {
-        //     self.nauty_graph.add_arc(self.depth, self.depth - 1);
-        // }
-        // if self.bitgraph.neighbors_directed(self.parent[self.depth]).contains(self.head) {
-        //     self.nauty_graph.add_arc(self.depth - 1, self.depth);
-        // }
 
         // create the new extension at the depth
         // then remove the head from the extension
@@ -147,16 +136,7 @@ impl<'a> Walker<'a> {
     pub fn ascend(&mut self) {
 
         // remove the head from the subgraph
-        // self.sub.set(self.head, false);
         self.sub.remove(self.depth);
-
-        // // remove the head from the underlying nauty subgraph
-        // if self.bitgraph.neighbors_directed(self.head).contains(self.parent[self.depth]) {
-        //     self.nauty_graph.rm_arc(self.depth, self.depth - 1);
-        // }
-        // if self.bitgraph.neighbors_directed(self.parent[self.depth]).contains(self.head) {
-        //     self.nauty_graph.rm_arc(self.depth - 1, self.depth);
-        // }
 
         // remove the head from the extension a level above
         self.ext.set(self.depth - 1, self.head, false);
@@ -216,7 +196,6 @@ impl<'a> Walker<'a> {
 
     pub fn subgraph(&self) -> &[usize] {
         &self.sub
-        // self.sub.ones().collect()
     }
 
     pub fn run_nauty(&mut self) -> Vec<u64> {
@@ -230,17 +209,8 @@ impl<'a> Walker<'a> {
             }
         }
 
-        // for (i, u) in self.sub.ones().enumerate() {
-        //     for (j, v) in self.sub.ones().enumerate() {
-        //         if self.bitgraph.neighbors_directed(u).contains(v) {
-        //             self.nauty_graph.add_arc(i, j);
-        //         }
-        //     }
-        // }
-
         self.nauty_graph.run();
         self.nauty_graph.canon().to_owned()
-        // self.nauty_graph.clear_canon();
     }
 
     pub fn clear_nauty(&mut self) {
