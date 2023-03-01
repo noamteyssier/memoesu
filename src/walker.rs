@@ -142,7 +142,6 @@ impl<'a> Walker<'a> {
         self.ext.set(self.depth - 1, self.head, false);
 
         // sets the head to the parent
-        // println!("Setting head to parent: {} => {}", self.head, self.parent[self.depth]);
         self.head = self.parent[self.depth];
         
         // clear the extension at the depth
