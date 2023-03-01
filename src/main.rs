@@ -1,5 +1,5 @@
-mod bit_esu;
 mod bitgraph;
+mod esu;
 mod ngraph;
 mod walker;
 
@@ -24,5 +24,5 @@ fn load_graph(filepath: &str) -> Graph<(), (), Directed> {
 fn main() {
     let k = 5;
     let graph = load_graph("example/yeast.txt");
-    bit_esu::enumerate_subgraphs(&graph, k);
+    esu::enumerate_subgraphs(&graph, k);
 }
