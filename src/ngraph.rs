@@ -105,6 +105,10 @@ impl NautyGraph {
         &self.canon
     }
 
+    pub fn graph(&self) -> &[u64] {
+        &self.graph
+    }
+
     pub fn pprint_graph(&self) -> Vec<u8> {
         let mut bit_vector = Vec::with_capacity(self.n * self.n);
         for num in self.graph.iter() {

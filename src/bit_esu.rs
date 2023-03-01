@@ -1,67 +1,33 @@
 use crate::{bitgraph::BitGraph, walker::Walker};
-use fixedbitset::FixedBitSet;
-use hashbrown::{HashMap, HashSet};
+use hashbrown::HashMap;
 use petgraph::{EdgeType, Graph};
 use rayon::prelude::*;
-
-// #[inline(always)]
-fn append_subgraph(sub: &FixedBitSet, w: usize) -> FixedBitSet {
-    let mut new_sub = sub.clone();
-    new_sub.insert(w);
-    new_sub
-}
-
-// #[inline(always)]
-fn exclusive_neighbors(bitgraph: &BitGraph, nbh: &FixedBitSet, w: usize) -> FixedBitSet {
-    let mut exc = bitgraph.neighbors(w).clone();
-    exc.difference_with(nbh);
-    exc
-}
-
-// #[inline(always)]
-fn append_exclusive(nbh: &FixedBitSet, exc: &FixedBitSet) -> FixedBitSet {
-    let mut new_nbh = nbh.clone();
-    new_nbh.union_with(exc);
-    new_nbh
-}
-
-// #[inline(always)]
-fn overwrite_extension(exc: &FixedBitSet, ext: &FixedBitSet, v: usize, w: usize) -> FixedBitSet {
-    let mut new_ext = ext.clone();
-    new_ext.union_with(exc);
-    new_ext.set(w, false);
-    new_ext.set_range(..v, false);
-    new_ext
-}
 
 pub fn enumerate_subgraphs<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize)
 where
     Ty: EdgeType,
 {
     let bitgraph = BitGraph::from_graph(graph);
-    let mut canon_counts = HashMap::new();
+    let mut canon_counts = HashMap::with_capacity(bitgraph.n * k);
+    let mut memo = HashMap::with_capacity(bitgraph.n * k);
     let mut num_subgraphs = 0;
+    let mut num_dups = 0;
     (0..bitgraph.n)
-        // .into_par_iter()
-        // .take(1)
         .for_each(|v| {
-            // let mut num_subgraphs = 0;
             let mut walker = Walker::new(&bitgraph, v, k);
-            extend_subgraph(&mut canon_counts, &mut num_subgraphs, &mut walker);
+            extend_subgraph(&mut canon_counts, &mut memo, &mut num_subgraphs, &mut num_dups, &mut walker);
         });
-    // .sum::<usize>();
-    // for v in (0..bitgraph.n).into_par_iter() {
-    //     let mut walker = Walker::new(&bitgraph, v, k);
-    //     extend_subgraph(&mut num_subgraphs, &mut walker);
-    //     // break;
-    // }
     println!("Found {} subgraphs", num_subgraphs);
     println!("Found {} unique subgraphs", canon_counts.len());
+    println!("Found {} duplicates", num_dups);
+
 }
 
 fn extend_subgraph(
     canon_counts: &mut HashMap<Vec<u64>, usize>,
+    memo: &mut HashMap<Vec<u64>, Vec<u64>>,
     num_subgraphs: &mut usize,
+    num_dups: &mut usize,
     walker: &mut Walker,
 ) {
     while !walker.is_finished() {
@@ -72,11 +38,22 @@ fn extend_subgraph(
                 walker.ascend();
             }
         } else {
-            let label = walker.run_nauty();
-            // walker.debug_subgraph();
-            *canon_counts.entry(label).or_insert(0) += 1;
+            walker.fill_nauty();
+            match memo.get(walker.nauty_graph()) {
+                Some(label) => {
+                    *canon_counts.entry(label.to_owned()).or_insert(0) += 1;
+                    walker.clear_nauty();
+                    *num_dups += 1;
+                },
+                None => {
+                    let label = walker.run_nauty();
+                    memo.insert(walker.nauty_graph().to_owned(), label.to_owned());
+                    *canon_counts.entry(label).or_insert(0) += 1;
+                    walker.clear_nauty();
+                }
+                
+            }
             *num_subgraphs += 1;
-            walker.clear_nauty();
             walker.ascend();
         }
     }

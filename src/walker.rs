@@ -190,7 +190,11 @@ impl<'a> Walker<'a> {
         &self.sub
     }
 
-    pub fn run_nauty(&mut self) -> Vec<u64> {
+    pub fn nauty_graph(&self) -> &[u64] {
+        self.nauty_graph.graph()
+    }
+
+    pub fn fill_nauty(&mut self) {
         // Fill the nauty graph with the subgraph
         for i in 0..=self.depth {
             for j in 0..=self.depth {
@@ -203,6 +207,9 @@ impl<'a> Walker<'a> {
                 }
             }
         }
+    }
+
+    pub fn run_nauty(&mut self) -> Vec<u64> {
 
         self.nauty_graph.run();
         self.nauty_graph.canon().to_owned()
