@@ -1,6 +1,7 @@
 mod bitgraph;
 mod bit_esu;
 mod esu;
+mod ngraph;
 mod rand_esu;
 mod subgraph;
 mod utils;
@@ -31,14 +32,14 @@ where
     let subgraphs = subgraph_indices
         .into_par_iter()
         // .into_iter()
-        .map(|indices| build_subgraph::<N, E, Ty>(&adj, graph.node_count(), &indices))
-        .map(|g| CanonLabeling::new(&g))
+        // .map(|indices| build_subgraph::<N, E, Ty>(&adj, graph.node_count(), &indices))
+        // .map(|g| CanonLabeling::new(&g))
         .collect::<Vec<_>>();
 
     let mut sg_map = HashMap::new();
     for subgraph in subgraphs {
-        let count = sg_map.entry(subgraph).or_insert(0);
-        *count += 1;
+        // let count = sg_map.entry(subgraph).or_insert(0);
+        // *count += 1;
     }
     sg_map
 }
@@ -85,7 +86,7 @@ fn load_graph(filepath: &str) -> Graph<(), (), Directed> {
 }
 
 fn main() {
-    let k = 3;
+    let k = 5;
     let graph = load_graph("example/yeast.txt");
     // let graph = load_graph("example/example.txt");
     bit_esu::enumerate_subgraphs(&graph, k);
