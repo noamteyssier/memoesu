@@ -18,6 +18,8 @@ rand_chacha = "0.3.1"
 rayon = "1.6.1"
 multibitset = { path = "./libs/multibitset" }
 fixedbitset = { path = "./libs/fixedbitset" }
+nauty-Traces-sys = "0.3.0"
+bitvec = "1.0.1"
 
 
 [dev-dependencies]
