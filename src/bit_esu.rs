@@ -1,4 +1,5 @@
 use fixedbitset::FixedBitSet;
+use hashbrown::{HashSet, HashMap};
 use petgraph::{Graph, EdgeType};
 use rayon::prelude::*;
 use crate::{bitgraph::BitGraph, walker::Walker};
@@ -47,25 +48,28 @@ pub fn enumerate_subgraphs<N, E, Ty>(
     Ty: EdgeType,
 {
     let bitgraph = BitGraph::from_graph(graph);
-    // let mut num_subgraphs = 0;
-    let num_subgraphs = (0..bitgraph.n)
-        .into_par_iter()
-        .map(|v| {
-            let mut num_subgraphs = 0;
+    let mut canon_counts = HashMap::new();
+    let mut num_subgraphs = 0;
+    (0..bitgraph.n)
+        // .into_par_iter()
+        // .take(1)
+        .for_each(|v| {
+            // let mut num_subgraphs = 0;
             let mut walker = Walker::new(&bitgraph, v, k);
-            extend_subgraph(&mut num_subgraphs, &mut walker);
-            num_subgraphs
-        })
-        .reduce(|| 0, |a, b| a + b);
+            extend_subgraph(&mut canon_counts, &mut num_subgraphs, &mut walker);
+        });
+        // .sum::<usize>();
     // for v in (0..bitgraph.n).into_par_iter() {
     //     let mut walker = Walker::new(&bitgraph, v, k);
     //     extend_subgraph(&mut num_subgraphs, &mut walker);
     //     // break;
     // }
     println!("Found {} subgraphs", num_subgraphs);
+    println!("Found {} unique subgraphs", canon_counts.len());
 }
 
 fn extend_subgraph(
+    canon_counts: &mut HashMap<Vec<u64>, usize>,
     num_subgraphs: &mut usize,
     walker: &mut Walker) 
 {
@@ -77,8 +81,11 @@ fn extend_subgraph(
                 walker.ascend();
             }
         } else {
+            let label = walker.run_nauty();
             // walker.debug_subgraph();
+            *canon_counts.entry(label).or_insert(0) += 1;
             *num_subgraphs += 1;
+            walker.clear_nauty();
             walker.ascend();
         }
     }
