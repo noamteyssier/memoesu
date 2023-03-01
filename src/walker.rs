@@ -1,8 +1,7 @@
 use std::fmt::Debug;
 
-use fixedbitset::FixedBitSet;
 use multibitset::MultiBitSet;
-use crate::bitgraph::BitGraph;
+use crate::{bitgraph::BitGraph, ngraph::NautyGraph};
 
 #[derive(Debug)]
 pub struct Walker<'a> {
@@ -10,7 +9,7 @@ pub struct Walker<'a> {
     bitgraph: &'a BitGraph,
 
     /// The subgraph of the current walk.
-    sub: FixedBitSet,
+    sub: Vec<usize>,
 
     /// The extension of the current walk.
     ext: MultiBitSet,
@@ -30,31 +29,46 @@ pub struct Walker<'a> {
     /// The parent nodes of the current head.
     parent: Vec<usize>,
 
-    /// The number of vertices in the graph.
-    n: usize,
-
     /// The maximum size of the subgraph.
     k: usize, 
 
     /// The current depth of the walk.
     pub depth: usize,
+
+    /// The underlying nauty graph.
+    nauty_graph: NautyGraph,
 }
 impl<'a> Walker<'a> {
     pub fn new(bitgraph: &'a BitGraph, root: usize, k: usize) -> Self {
+
+        // Initialize the number of nodes.
+        let n = bitgraph.n;
+
+        // Initialize the head node as root.
         let head = root;
+
+        // Initialize the parent vector.
         let mut parent = vec![0; k];
         parent[0] = root;
-        let n = bitgraph.n;
+
+        // Initialize the depth.
         let depth = 0;
 
+        // Initialize the underlying nauty graph.
+        let nauty_graph = if bitgraph.is_directed {
+            NautyGraph::new_directed(k)
+        } else {
+            NautyGraph::new_undirected(k)
+        };
+
         // Initialize the subgraph, extension, and neighborhood.
-        let mut sub = Self::init_subgraph(root, n);
+        let sub = Self::init_subgraph(root, n);
         let mut ext = MultiBitSet::new(n, k);
         let mut nbh = MultiBitSet::new(n, k);
         let exc = MultiBitSet::new(n, k);
 
         // Insert the root into the subgraph
-        sub.set(root, true);
+        // sub.set(root, true);
 
         // Insert the roots neighbors into the extension
         ext.inplace_external_union(0, bitgraph.neighbors(root));
@@ -72,15 +86,17 @@ impl<'a> Walker<'a> {
             root,
             head,
             parent,
-            n,
             k,
             depth,
+            nauty_graph,
         }
     }
 
-    fn init_subgraph(root: usize, n: usize) -> FixedBitSet {
-        let mut sub = FixedBitSet::with_capacity(n);
-        sub.insert(root);
+    fn init_subgraph(root: usize, n: usize) -> Vec<usize> {
+        let mut sub = Vec::with_capacity(n);
+        // let mut sub = FixedBitSet::with_capacity(n);
+        // sub.insert(root);
+        sub.push(root);
         sub
     }
 
@@ -97,7 +113,16 @@ impl<'a> Walker<'a> {
             .next().unwrap();
 
         // insert the head into the subgraph
-        self.sub.set(self.head, true);
+        // self.sub.set(self.head, true);
+        self.sub.push(self.head);
+
+        // // insert into the underlying nauty subgraph
+        // if self.bitgraph.neighbors_directed(self.head).contains(self.parent[self.depth]) {
+        //     self.nauty_graph.add_arc(self.depth, self.depth - 1);
+        // }
+        // if self.bitgraph.neighbors_directed(self.parent[self.depth]).contains(self.head) {
+        //     self.nauty_graph.add_arc(self.depth - 1, self.depth);
+        // }
 
         // create the new extension at the depth
         // then remove the head from the extension
@@ -122,7 +147,16 @@ impl<'a> Walker<'a> {
     pub fn ascend(&mut self) {
 
         // remove the head from the subgraph
-        self.sub.set(self.head, false);
+        // self.sub.set(self.head, false);
+        self.sub.remove(self.depth);
+
+        // // remove the head from the underlying nauty subgraph
+        // if self.bitgraph.neighbors_directed(self.head).contains(self.parent[self.depth]) {
+        //     self.nauty_graph.rm_arc(self.depth, self.depth - 1);
+        // }
+        // if self.bitgraph.neighbors_directed(self.parent[self.depth]).contains(self.head) {
+        //     self.nauty_graph.rm_arc(self.depth - 1, self.depth);
+        // }
 
         // remove the head from the extension a level above
         self.ext.set(self.depth - 1, self.head, false);
@@ -153,15 +187,17 @@ impl<'a> Walker<'a> {
         } else {
             println!("\n\n>> Ascend to Depth: {}", self.depth);
         }
-        println!("Sub:\n{:?}", self.sub.ones().collect::<Vec<_>>());
+        // println!("Sub:\n{:?}", self.sub.ones().collect::<Vec<_>>());
+        println!("Sub:\n{:?}", self.sub);
         println!("Ext:\n{}", self.ext.pprint());
         println!("Nbh:\n{}", self.nbh.pprint());
         println!("Exc:\n{}", self.exc.pprint());
     }
 
     #[allow(dead_code)]
-    fn debug_subgraph(&self) {
+    pub fn debug_subgraph(&self) {
         println!("Subgraph: {:?}", self.subgraph());
+        println!("NAUTY   : {:?}", self.nauty_graph.pprint_graph());
     }
 
     pub fn is_descending(&self) -> bool {
@@ -178,7 +214,37 @@ impl<'a> Walker<'a> {
         self.ext.get_row(0).ones().next().is_none()
     }
 
-    pub fn subgraph(&self) -> Vec<usize> {
-        self.sub.ones().collect()
+    pub fn subgraph(&self) -> &[usize] {
+        &self.sub
+        // self.sub.ones().collect()
+    }
+
+    pub fn run_nauty(&mut self) -> Vec<u64> {
+
+        // Fill the nauty graph with the subgraph
+        for i in 0..=self.depth {
+            for j in 0..=self.depth {
+                if self.bitgraph.neighbors_directed(self.sub[i]).contains(self.sub[j]) {
+                    self.nauty_graph.add_arc(i, j);
+                }
+            }
+        }
+
+        // for (i, u) in self.sub.ones().enumerate() {
+        //     for (j, v) in self.sub.ones().enumerate() {
+        //         if self.bitgraph.neighbors_directed(u).contains(v) {
+        //             self.nauty_graph.add_arc(i, j);
+        //         }
+        //     }
+        // }
+
+        self.nauty_graph.run();
+        self.nauty_graph.canon().to_owned()
+        // self.nauty_graph.clear_canon();
+    }
+
+    pub fn clear_nauty(&mut self) {
+        self.nauty_graph.clear_canon();
+        self.nauty_graph.clear_graph();
     }
 }
