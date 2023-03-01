@@ -7,8 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.69"
-fixedbitset = "0.4.2"
-graph-canon = "0.1.2"
+# fixedbitset = "0.4.2"
 graph6-rs = "0.1.5"
 hashbrown = "0.13.2"
 petgraph = "0.6.3"
@@ -16,6 +15,12 @@ petgraph-gen = "0.1.3"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 rayon = "1.6.1"
+multibitset = { path = "./libs/multibitset" }
+fixedbitset = { path = "./libs/fixedbitset" }
+nauty-Traces-sys = "0.3.0"
+# nauty-Traces-sys = { path = "../nauty-Traces-sys" }
+bitvec = "1.0.1"
+
 
 [dev-dependencies]
 criterion = "0.3"
@@ -23,3 +28,7 @@ criterion = "0.3"
 [[bench]]
 name = "benchmark"
 harness = false
+
+[profile.release-with-debug]
+inherits = "release"
+debug = true
