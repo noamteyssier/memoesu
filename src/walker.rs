@@ -66,9 +66,6 @@ impl<'a> Walker<'a> {
         let mut nbh = MultiBitSet::new(n, k);
         let exc = MultiBitSet::new(n, k);
 
-        // Insert the root into the subgraph
-        // sub.set(root, true);
-
         // Insert the roots neighbors into the extension
         ext.inplace_external_union(0, bitgraph.neighbors(root));
         ext.set_range(0, 0..root + 1, false);
@@ -163,7 +160,6 @@ impl<'a> Walker<'a> {
         } else {
             println!("\n\n>> Ascend to Depth: {}", self.depth);
         }
-        // println!("Sub:\n{:?}", self.sub.ones().collect::<Vec<_>>());
         println!("Sub:\n{:?}", self.sub);
         println!("Ext:\n{}", self.ext.pprint());
         println!("Nbh:\n{}", self.nbh.pprint());
