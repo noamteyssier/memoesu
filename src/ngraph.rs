@@ -1,15 +1,13 @@
-use std::os::raw::c_int;
-use nauty_Traces_sys::{
-    SETWORDSNEEDED, empty_graph, ADDONEARC,
-    GRAPHROW, SETWD, SETBT, bit, set, statsblk,
-    optionblk, densenauty,
-};
 use bitvec::prelude::*;
+use nauty_Traces_sys::{
+    bit, densenauty, empty_graph, optionblk, set, statsblk, ADDONEARC, GRAPHROW, SETBT, SETWD,
+    SETWORDSNEEDED,
+};
+use std::os::raw::c_int;
 
 /// A dense graph representation for use with nauty.
 #[derive(Debug)]
 pub struct NautyGraph {
-
     /// The binary representation of the graph.
     pub graph: Vec<u64>,
 
@@ -123,10 +121,8 @@ impl NautyGraph {
     }
 }
 
-
 #[derive(Debug)]
 pub struct Nodes {
-
     /// The node labeling.
     pub lab: Vec<c_int>,
 

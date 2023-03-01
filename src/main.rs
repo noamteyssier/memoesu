@@ -1,5 +1,5 @@
-mod bitgraph;
 mod bit_esu;
+mod bitgraph;
 mod esu;
 mod ngraph;
 mod rand_esu;

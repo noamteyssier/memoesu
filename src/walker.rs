@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
-use multibitset::MultiBitSet;
 use crate::{bitgraph::BitGraph, ngraph::NautyGraph};
+use multibitset::MultiBitSet;
 
 #[derive(Debug)]
 pub struct Walker<'a> {
@@ -30,7 +30,7 @@ pub struct Walker<'a> {
     parent: Vec<usize>,
 
     /// The maximum size of the subgraph.
-    k: usize, 
+    k: usize,
 
     /// The current depth of the walk.
     pub depth: usize,
@@ -40,7 +40,6 @@ pub struct Walker<'a> {
 }
 impl<'a> Walker<'a> {
     pub fn new(bitgraph: &'a BitGraph, root: usize, k: usize) -> Self {
-
         // Initialize the number of nodes.
         let n = bitgraph.n;
 
@@ -72,7 +71,7 @@ impl<'a> Walker<'a> {
 
         // Insert the roots neighbors into the extension
         ext.inplace_external_union(0, bitgraph.neighbors(root));
-        ext.set_range(0, 0..root+1, false);
+        ext.set_range(0, 0..root + 1, false);
 
         nbh.inplace_external_union(0, bitgraph.neighbors(root));
         nbh.set(0, root, true);
@@ -105,10 +104,7 @@ impl<'a> Walker<'a> {
         self.parent[self.depth] = self.head;
 
         // draw a new head from the extension
-        self.head = self.ext
-            .get_row(self.depth - 1)
-            .ones()
-            .next().unwrap();
+        self.head = self.ext.get_row(self.depth - 1).ones().next().unwrap();
 
         // insert the head into the subgraph
         self.sub.push(self.head);
@@ -122,10 +118,12 @@ impl<'a> Walker<'a> {
         self.nbh.inplace_union(self.depth, self.depth - 1);
 
         // create the new exclusive neighborhood at the depth
-        self.exc.inplace_external_union(self.depth, self.bitgraph.neighbors(self.head));
-        self.exc.difference_with(&self.nbh, self.depth, self.depth-1);
-        self.exc.set_range(self.depth, 0..self.root+1, false);
-        
+        self.exc
+            .inplace_external_union(self.depth, self.bitgraph.neighbors(self.head));
+        self.exc
+            .difference_with(&self.nbh, self.depth, self.depth - 1);
+        self.exc.set_range(self.depth, 0..self.root + 1, false);
+
         // add the exclusive neighborhood to the extension and neighborhood
         self.ext.union_with(&self.exc, self.depth, self.depth);
         self.nbh.union_with(&self.exc, self.depth, self.depth);
@@ -134,7 +132,6 @@ impl<'a> Walker<'a> {
     }
 
     pub fn ascend(&mut self) {
-
         // remove the head from the subgraph
         self.sub.remove(self.depth);
 
@@ -143,13 +140,13 @@ impl<'a> Walker<'a> {
 
         // sets the head to the parent
         self.head = self.parent[self.depth];
-        
+
         // clear the extension at the depth
         self.ext.clear(self.depth);
 
         // clear the neighborhood at the depth
         self.nbh.clear(self.depth);
-        
+
         // clear the exclusive neighborhood at the depth
         self.exc.clear(self.depth);
 
@@ -198,11 +195,14 @@ impl<'a> Walker<'a> {
     }
 
     pub fn run_nauty(&mut self) -> Vec<u64> {
-
         // Fill the nauty graph with the subgraph
         for i in 0..=self.depth {
             for j in 0..=self.depth {
-                if self.bitgraph.neighbors_directed(self.sub[i]).contains(self.sub[j]) {
+                if self
+                    .bitgraph
+                    .neighbors_directed(self.sub[i])
+                    .contains(self.sub[j])
+                {
                     self.nauty_graph.add_arc(i, j);
                 }
             }

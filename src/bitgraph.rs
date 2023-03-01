@@ -1,6 +1,5 @@
 use fixedbitset::FixedBitSet;
-use petgraph::{EdgeType, Graph, graph::NodeIndex};
-
+use petgraph::{graph::NodeIndex, EdgeType, Graph};
 
 /// A graph represented as a set of adjacency lists
 #[derive(Debug)]
@@ -27,7 +26,12 @@ impl BitGraph {
             u_adj.push(undirected_neighbors(graph, v_index));
             d_adj.push(directed_neighbors(graph, v_index));
         }
-        Self { u_adj, d_adj, n, is_directed: Ty::is_directed() }
+        Self {
+            u_adj,
+            d_adj,
+            n,
+            is_directed: Ty::is_directed(),
+        }
     }
 
     pub fn neighbors(&self, v: usize) -> &FixedBitSet {
@@ -58,28 +62,16 @@ fn directed_neighbors<N, E, Ty: EdgeType>(graph: &Graph<N, E, Ty>, v: NodeIndex)
 #[cfg(test)]
 mod testing {
 
-    use petgraph::{Directed, Undirected};
     use super::*;
+    use petgraph::{Directed, Undirected};
 
     fn build_directed_graph() -> Graph<(), (), Directed> {
-        let edges = [
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (1, 2),
-            (2, 3),
-        ];
+        let edges = [(0, 1), (0, 2), (0, 3), (1, 2), (2, 3)];
         Graph::from_edges(&edges)
     }
 
     fn build_undirected_graph() -> Graph<(), (), Undirected> {
-        let edges = [
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (1, 2),
-            (2, 3),
-        ];
+        let edges = [(0, 1), (0, 2), (0, 3), (1, 2), (2, 3)];
         Graph::from_edges(&edges)
     }
 
@@ -124,5 +116,4 @@ mod testing {
         assert_eq!(bitgraph.d_adj.len(), 4);
         assert_eq!(bitgraph.neighbors(1), bitgraph.neighbors_directed(1));
     }
-
 }

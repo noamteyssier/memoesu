@@ -1,9 +1,8 @@
-use fixedbitset::FixedBitSet;
-use hashbrown::{HashSet, HashMap};
-use petgraph::{Graph, EdgeType};
-use rayon::prelude::*;
 use crate::{bitgraph::BitGraph, walker::Walker};
-
+use fixedbitset::FixedBitSet;
+use hashbrown::{HashMap, HashSet};
+use petgraph::{EdgeType, Graph};
+use rayon::prelude::*;
 
 // #[inline(always)]
 fn append_subgraph(sub: &FixedBitSet, w: usize) -> FixedBitSet {
@@ -27,12 +26,7 @@ fn append_exclusive(nbh: &FixedBitSet, exc: &FixedBitSet) -> FixedBitSet {
 }
 
 // #[inline(always)]
-fn overwrite_extension(
-    exc: &FixedBitSet,
-    ext: &FixedBitSet,
-    v: usize,
-    w: usize,
-    ) -> FixedBitSet {
+fn overwrite_extension(exc: &FixedBitSet, ext: &FixedBitSet, v: usize, w: usize) -> FixedBitSet {
     let mut new_ext = ext.clone();
     new_ext.union_with(exc);
     new_ext.set(w, false);
@@ -40,11 +34,8 @@ fn overwrite_extension(
     new_ext
 }
 
-
-pub fn enumerate_subgraphs<N, E, Ty>(
-    graph: &Graph<N, E, Ty>, 
-    k: usize
-) where
+pub fn enumerate_subgraphs<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize)
+where
     Ty: EdgeType,
 {
     let bitgraph = BitGraph::from_graph(graph);
@@ -58,7 +49,7 @@ pub fn enumerate_subgraphs<N, E, Ty>(
             let mut walker = Walker::new(&bitgraph, v, k);
             extend_subgraph(&mut canon_counts, &mut num_subgraphs, &mut walker);
         });
-        // .sum::<usize>();
+    // .sum::<usize>();
     // for v in (0..bitgraph.n).into_par_iter() {
     //     let mut walker = Walker::new(&bitgraph, v, k);
     //     extend_subgraph(&mut num_subgraphs, &mut walker);
@@ -71,8 +62,8 @@ pub fn enumerate_subgraphs<N, E, Ty>(
 fn extend_subgraph(
     canon_counts: &mut HashMap<Vec<u64>, usize>,
     num_subgraphs: &mut usize,
-    walker: &mut Walker) 
-{
+    walker: &mut Walker,
+) {
     while !walker.is_finished() {
         if walker.is_descending() {
             if walker.has_extension() {
