@@ -18,7 +18,7 @@ pub struct Cli {
     output: Option<String>,
 
     /// Number of subgraphs to find in the input graph
-    #[arg(short = 'k', long)]
+    #[arg(short, long)]
     subgraph_size: usize,
 }
 
