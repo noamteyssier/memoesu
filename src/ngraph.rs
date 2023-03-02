@@ -1,6 +1,6 @@
 use bitvec::prelude::*;
 use nauty_Traces_sys::{
-    bit, densenauty, empty_graph, optionblk, set, statsblk, ADDONEARC, GRAPHROW, SETBT, SETWD,
+    densenauty, empty_graph, optionblk, statsblk, ADDONEARC,
     SETWORDSNEEDED,
 };
 use std::os::raw::c_int;
@@ -70,11 +70,6 @@ impl NautyGraph {
     pub fn add_arc(&mut self, u: usize, v: usize) {
         ADDONEARC(&mut self.graph, u, v, self.m);
         self.e += 1;
-    }
-
-    pub fn rm_arc(&mut self, u: usize, v: usize) {
-        DELONEARC(&mut self.graph, u, v, self.m);
-        self.e -= 1;
     }
 
     pub fn run(&mut self) {
