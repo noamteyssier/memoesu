@@ -20,6 +20,7 @@ fixedbitset = { path = "./libs/fixedbitset" }
 nauty-Traces-sys = "0.3.0"
 # nauty-Traces-sys = { path = "../nauty-Traces-sys" }
 bitvec = "1.0.1"
+clap = { version = "4.1.8", features = ["derive"] }
 
 
 [dev-dependencies]
