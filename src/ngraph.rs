@@ -103,7 +103,7 @@ impl NautyGraph {
 
     pub fn pprint_graph(&self) -> Vec<u8> {
         let mut bit_vector = Vec::with_capacity(self.n * self.n);
-        for num in self.graph.iter() {
+        for num in &self.graph {
             let bv = num.view_bits::<Msb0>();
             for b in bv.iter().take(self.n) {
                 if *b {
