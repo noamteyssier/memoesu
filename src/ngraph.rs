@@ -81,7 +81,7 @@ impl NautyGraph {
                 self.m as c_int,
                 self.n as c_int,
                 self.canon.as_mut_ptr(),
-            )
+            );
         }
     }
 
