@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use bitvec::{prelude::Msb0, view::BitView};
 use graph6_rs::write_graph6;
 use hashbrown::HashMap;
@@ -20,7 +20,7 @@ pub fn load_graph(filepath: &str) -> Result<Graph<(), (), Directed>> {
         if u == 0 || v == 0 {
             bail!("ERROR: Invalid node ID 0 found. Make sure the graph is 1-indexed.");
         }
-        edges.push((u-1, v-1));
+        edges.push((u - 1, v - 1));
     }
     Ok(Graph::from_edges(&edges))
 }

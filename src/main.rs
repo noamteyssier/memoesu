@@ -34,7 +34,6 @@ fn main() -> Result<()> {
     eprintln!(">> Number of nodes         : {}", graph.node_count());
     eprintln!(">> Number of edges         : {}", graph.edge_count());
 
-
     // Enumerate the subgraphs.
     let now = std::time::Instant::now();
     let canon_counts = esu::enumerate_subgraphs(&graph, cli.subgraph_size);
