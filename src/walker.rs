@@ -210,7 +210,6 @@ impl<'a> Walker<'a> {
     }
 
     pub fn run_nauty(&mut self) -> Vec<u64> {
-
         self.nauty_graph.run();
         self.nauty_graph.canon().to_owned()
     }

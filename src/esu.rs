@@ -11,11 +11,16 @@ where
     let mut memo = HashMap::with_capacity(bitgraph.n * k);
     let mut num_subgraphs = 0;
     let mut num_dups = 0;
-    (0..bitgraph.n)
-        .for_each(|v| {
-            let mut walker = Walker::new(&bitgraph, v, k);
-            extend_subgraph(&mut canon_counts, &mut memo, &mut num_subgraphs, &mut num_dups, &mut walker);
-        });
+    (0..bitgraph.n).for_each(|v| {
+        let mut walker = Walker::new(&bitgraph, v, k);
+        extend_subgraph(
+            &mut canon_counts,
+            &mut memo,
+            &mut num_subgraphs,
+            &mut num_dups,
+            &mut walker,
+        );
+    });
 
     eprintln!(">> Num subgraphs       : {}", num_subgraphs);
     eprintln!(">> Unique subgraphs    : {}", canon_counts.len());
@@ -44,13 +49,12 @@ fn extend_subgraph(
                 Some(label) => {
                     *canon_counts.entry(label.to_owned()).or_insert(0) += 1;
                     *num_dups += 1;
-                },
+                }
                 None => {
                     let label = walker.run_nauty();
                     memo.insert(walker.nauty_graph().to_owned(), label.to_owned());
                     *canon_counts.entry(label).or_insert(0) += 1;
                 }
-                
             }
             *num_subgraphs += 1;
             walker.clear_nauty();

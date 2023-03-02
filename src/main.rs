@@ -9,7 +9,6 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 pub struct Cli {
-
     /// File path to the input graph (white space separated edgelist)
     #[arg(short, long)]
     input: String,
@@ -19,11 +18,9 @@ pub struct Cli {
     output: Option<String>,
 
     /// Number of subgraphs to find in the input graph
-    #[arg(short= 'k', long)]
+    #[arg(short = 'k', long)]
     subgraph_size: usize,
-
 }
-
 
 fn main() -> Result<()> {
     let cli = Cli::parse();

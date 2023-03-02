@@ -1,9 +1,12 @@
-use std::{io::{BufRead, BufReader, BufWriter, Write, stdout}, fs::File};
 use anyhow::Result;
-use bitvec::{view::BitView, prelude::Msb0};
+use bitvec::{prelude::Msb0, view::BitView};
 use graph6_rs::write_graph6;
 use hashbrown::HashMap;
-use petgraph::{Graph, Directed};
+use petgraph::{Directed, Graph};
+use std::{
+    fs::File,
+    io::{stdout, BufRead, BufReader, BufWriter, Write},
+};
 
 /// Load a graph from a file
 pub fn load_graph(filepath: &str) -> Result<Graph<(), (), Directed>> {
@@ -20,7 +23,11 @@ pub fn load_graph(filepath: &str) -> Result<Graph<(), (), Directed>> {
 }
 
 /// Write the counts of each subgraph to a file or stdout
-pub fn write_counts(canon_counts: HashMap<Vec<u64>, usize>, k: usize, output: Option<String>) -> Result<()> {
+pub fn write_counts(
+    canon_counts: HashMap<Vec<u64>, usize>,
+    k: usize,
+    output: Option<String>,
+) -> Result<()> {
     if let Some(output) = output {
         let mut buffer = File::create(output).map(BufWriter::new)?;
         write_counts_to_buffer(&mut buffer, canon_counts, k)
@@ -32,26 +39,26 @@ pub fn write_counts(canon_counts: HashMap<Vec<u64>, usize>, k: usize, output: Op
 
 /// Write the counts of each subgraph to a buffer
 fn write_counts_to_buffer<W: Write>(
-        buffer: &mut BufWriter<W>, 
-        canon_counts: HashMap<Vec<u64>, usize>, 
-        k: usize) -> Result<()> {
-
+    buffer: &mut BufWriter<W>,
+    canon_counts: HashMap<Vec<u64>, usize>,
+    k: usize,
+) -> Result<()> {
     // Sort by count
     let mut sorted_counts: Vec<(&Vec<u64>, &usize)> = canon_counts.iter().collect();
     sorted_counts.sort_by(|a, b| a.1.cmp(b.1));
 
     // Write to buffer
-    for (label, count) in sorted_counts{
+    for (label, count) in sorted_counts {
         let adj = graph_to_flat_adj(&label, k);
         let canon = write_graph6(adj, k, true);
         writeln!(buffer, "{}\t{}", canon, count)?;
-    } 
+    }
     Ok(())
 }
 
 /// Convert a nauty graph to a flat adjacency matrix
 fn graph_to_flat_adj(graph: &[u64], n: usize) -> Vec<usize> {
-    let mut adj = Vec::with_capacity(n*n);
+    let mut adj = Vec::with_capacity(n * n);
     for num in graph.iter() {
         let bv = num.view_bits::<Msb0>();
         for b in bv.iter().take(graph.len()) {
