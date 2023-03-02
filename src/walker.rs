@@ -101,7 +101,12 @@ impl<'a> Walker<'a> {
         self.parent[self.depth] = self.head;
 
         // draw a new head from the extension
-        self.head = self.extension.get_row(self.depth - 1).ones().next().unwrap();
+        self.head = self
+            .extension
+            .get_row(self.depth - 1)
+            .ones()
+            .next()
+            .unwrap();
 
         // insert the head into the subgraph
         self.subgraph.push(self.head);
@@ -119,11 +124,14 @@ impl<'a> Walker<'a> {
             .inplace_external_union(self.depth, self.bitgraph.neighbors(self.head));
         self.exclusive
             .difference_with(&self.neighborhood, self.depth, self.depth - 1);
-        self.exclusive.set_range(self.depth, 0..self.root + 1, false);
+        self.exclusive
+            .set_range(self.depth, 0..self.root + 1, false);
 
         // add the exclusive neighborhood to the extension and neighborhood
-        self.extension.union_with(&self.exclusive, self.depth, self.depth);
-        self.neighborhood.union_with(&self.exclusive, self.depth, self.depth);
+        self.extension
+            .union_with(&self.exclusive, self.depth, self.depth);
+        self.neighborhood
+            .union_with(&self.exclusive, self.depth, self.depth);
 
         // self.debug(true);
     }
