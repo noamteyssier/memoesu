@@ -1,6 +1,4 @@
-use std::ops::Range;
-
-use fixedbitset::FixedBitSet;
+use fixedbitset::{FixedBitSet, IndexRange};
 
 #[derive(Debug)]
 pub struct MultiBitSet {
@@ -101,7 +99,7 @@ impl MultiBitSet {
         self.data[i].difference_with(&other.data[j]);
     }
 
-    pub fn set_range(&mut self, i: usize, range: Range<usize>, enabled: bool) {
+    pub fn set_range<I: IndexRange>(&mut self, i: usize, range: I, enabled: bool) {
         self.data[i].set_range(range, enabled);
     }
 
@@ -113,4 +111,3 @@ impl MultiBitSet {
         s
     }
 }
-

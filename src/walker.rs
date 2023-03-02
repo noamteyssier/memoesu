@@ -68,7 +68,7 @@ impl<'a> Walker<'a> {
 
         // Insert the roots neighbors into the extension
         extension.inplace_external_union(0, bitgraph.neighbors(root));
-        extension.set_range(0, 0..root + 1, false);
+        extension.set_range(0, 0..=root, false);
 
         neighborhood.inplace_external_union(0, bitgraph.neighbors(root));
         neighborhood.set(0, root, true);
@@ -125,7 +125,7 @@ impl<'a> Walker<'a> {
         self.exclusive
             .difference_with(&self.neighborhood, self.depth, self.depth - 1);
         self.exclusive
-            .set_range(self.depth, 0..self.root + 1, false);
+            .set_range(self.depth, 0..=self.root, false);
 
         // add the exclusive neighborhood to the extension and neighborhood
         self.extension

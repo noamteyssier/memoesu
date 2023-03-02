@@ -1,4 +1,4 @@
-use std::ops::{Range, RangeFrom, RangeFull, RangeTo};
+use std::ops::{Range, RangeInclusive, RangeFrom, RangeFull, RangeTo, RangeToInclusive};
 
 // Taken from https://github.com/bluss/odds/blob/master/src/range.rs.
 
@@ -38,6 +38,24 @@ impl<T: Copy> IndexRange<T> for Range<T> {
     fn start(&self) -> Option<T> {
         Some(self.start)
     }
+    #[inline]
+    fn end(&self) -> Option<T> {
+        Some(self.end)
+    }
+}
+
+impl<T: Copy> IndexRange<T> for RangeInclusive<T> {
+    #[inline]
+    fn start(&self) -> Option<T> {
+        Some(*self.start())
+    }
+    #[inline]
+    fn end(&self) -> Option<T> {
+        Some(*self.end())
+    }
+}
+
+impl<T: Copy> IndexRange<T> for RangeToInclusive<T> {
     #[inline]
     fn end(&self) -> Option<T> {
         Some(self.end)
