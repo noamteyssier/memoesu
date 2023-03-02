@@ -124,8 +124,7 @@ impl<'a> Walker<'a> {
             .inplace_external_union(self.depth, self.bitgraph.neighbors(self.head));
         self.exclusive
             .difference_with(&self.neighborhood, self.depth, self.depth - 1);
-        self.exclusive
-            .set_range(self.depth, 0..=self.root, false);
+        self.exclusive.set_range(self.depth, 0..=self.root, false);
 
         // add the exclusive neighborhood to the extension and neighborhood
         self.extension
