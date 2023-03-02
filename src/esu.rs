@@ -47,12 +47,12 @@ fn extend_subgraph(
             walker.fill_nauty();
             match memo.get(walker.nauty_graph()) {
                 Some(label) => {
-                    *canon_counts.entry(label.to_owned()).or_insert(0) += 1;
+                    *canon_counts.entry(label.clone()).or_insert(0) += 1;
                     *num_dups += 1;
                 }
                 None => {
                     let label = walker.run_nauty();
-                    memo.insert(walker.nauty_graph().to_owned(), label.to_owned());
+                    memo.insert(walker.nauty_graph().to_vec(), label.clone());
                     *canon_counts.entry(label).or_insert(0) += 1;
                 }
             }
