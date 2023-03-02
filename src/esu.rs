@@ -45,16 +45,13 @@ fn extend_subgraph(
             }
         } else {
             walker.fill_nauty();
-            match memo.get(walker.nauty_graph()) {
-                Some(label) => {
-                    *canon_counts.entry(label.clone()).or_insert(0) += 1;
-                    *num_dups += 1;
-                }
-                None => {
-                    let label = walker.run_nauty();
-                    memo.insert(walker.nauty_graph().to_vec(), label.clone());
-                    *canon_counts.entry(label).or_insert(0) += 1;
-                }
+            if let Some(label) = memo.get(walker.nauty_graph()) {
+                *canon_counts.entry(label.clone()).or_insert(0) += 1;
+                *num_dups += 1;
+            } else {
+                let label = walker.run_nauty();
+                memo.insert(walker.nauty_graph().to_vec(), label.clone());
+                *canon_counts.entry(label).or_insert(0) += 1;
             }
             *num_subgraphs += 1;
             walker.clear_nauty();
