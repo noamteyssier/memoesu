@@ -1,28 +1,34 @@
 mod bitgraph;
 mod esu;
+mod io;
 mod ngraph;
 mod walker;
 
-use std::io::BufRead;
-use petgraph::{Graph, Directed};
+use anyhow::Result;
+use clap::Parser;
 
+#[derive(Parser, Debug)]
+pub struct Cli {
 
-fn load_graph(filepath: &str) -> Graph<(), (), Directed> {
-    let file = std::fs::File::open(filepath).unwrap();
-    let reader = std::io::BufReader::new(file);
-    let mut edges = Vec::new();
-    for line in reader.lines() {
-        let line = line.unwrap();
-        let mut split = line.split_whitespace();
-        let u = split.next().unwrap().parse::<u32>().unwrap();
-        let v = split.next().unwrap().parse::<u32>().unwrap();
-        edges.push((u, v));
-    }
-    Graph::from_edges(&edges)
+    /// File path to the input graph (white space separated edgelist)
+    #[arg(short, long)]
+    input: String,
+
+    /// Output file path to write results to (default: stdout)
+    #[arg(short, long)]
+    output: Option<String>,
+
+    /// Number of subgraphs to find in the input graph
+    #[arg(short= 'k', long)]
+    subgraph_size: usize,
+
 }
 
-fn main() {
-    let k = 5;
-    let graph = load_graph("example/yeast.txt");
-    esu::enumerate_subgraphs(&graph, k);
+
+fn main() -> Result<()> {
+    let cli = Cli::parse();
+    let graph = io::load_graph(&cli.input)?;
+    let canon_counts = esu::enumerate_subgraphs(&graph, cli.subgraph_size);
+    io::write_counts(canon_counts, cli.subgraph_size, cli.output)?;
+    Ok(())
 }
