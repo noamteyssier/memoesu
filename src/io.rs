@@ -24,7 +24,7 @@ pub fn load_graph(filepath: &str) -> Result<Graph<(), (), Directed>> {
 
 /// Write the counts of each subgraph to a file or stdout
 pub fn write_counts(
-    canon_counts: HashMap<Vec<u64>, usize>,
+    canon_counts: &HashMap<Vec<u64>, usize>,
     k: usize,
     output: Option<String>,
 ) -> Result<()> {
@@ -40,7 +40,7 @@ pub fn write_counts(
 /// Write the counts of each subgraph to a buffer
 fn write_counts_to_buffer<W: Write>(
     buffer: &mut BufWriter<W>,
-    canon_counts: HashMap<Vec<u64>, usize>,
+    canon_counts: &HashMap<Vec<u64>, usize>,
     k: usize,
 ) -> Result<()> {
     // Sort by count

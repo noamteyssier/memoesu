@@ -26,6 +26,6 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     let graph = io::load_graph(&cli.input)?;
     let canon_counts = esu::enumerate_subgraphs(&graph, cli.subgraph_size);
-    io::write_counts(canon_counts, cli.subgraph_size, cli.output)?;
+    io::write_counts(&canon_counts, cli.subgraph_size, cli.output)?;
     Ok(())
 }
