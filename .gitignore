@@ -13,3 +13,6 @@ Cargo.lock
 flamegraph.svg
 perf.data
 perf.data.old
+
+# common output file
+out.txt
