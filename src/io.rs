@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, bail};
 use bitvec::{prelude::Msb0, view::BitView};
 use graph6_rs::write_graph6;
 use hashbrown::HashMap;
@@ -15,9 +15,12 @@ pub fn load_graph(filepath: &str) -> Result<Graph<(), (), Directed>> {
     for line in reader.lines() {
         let line = line.unwrap();
         let mut split = line.split_whitespace();
-        let u = split.next().unwrap().parse::<u32>().unwrap();
-        let v = split.next().unwrap().parse::<u32>().unwrap();
-        edges.push((u, v));
+        let u = split.next().unwrap().parse::<u32>()?;
+        let v = split.next().unwrap().parse::<u32>()?;
+        if u == 0 || v == 0 {
+            bail!("ERROR: Invalid node ID 0 found. Make sure the graph is 1-indexed.");
+        }
+        edges.push((u-1, v-1));
     }
     Ok(Graph::from_edges(&edges))
 }
@@ -29,7 +32,8 @@ pub fn write_counts(
     output: Option<String>,
 ) -> Result<()> {
     if let Some(output) = output {
-        let mut buffer = File::create(output).map(BufWriter::new)?;
+        let mut buffer = File::create(&output).map(BufWriter::new)?;
+        eprintln!(">> Writing results to      : {}", &output);
         write_counts_to_buffer(&mut buffer, canon_counts, k)
     } else {
         let mut buffer = BufWriter::new(stdout().lock());
