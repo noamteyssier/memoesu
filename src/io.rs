@@ -49,7 +49,7 @@ fn write_counts_to_buffer<W: Write>(
 
     // Write to buffer
     for (label, count) in sorted_counts {
-        let adj = graph_to_flat_adj(&label, k);
+        let adj = graph_to_flat_adj(label, k);
         let canon = write_graph6(adj, k, true);
         writeln!(buffer, "{}\t{}", canon, count)?;
     }
