@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.69"
-# fixedbitset = "0.4.2"
 graph6-rs = "0.1.5"
 hashbrown = "0.13.2"
 petgraph = "0.6.3"
@@ -18,16 +17,8 @@ rayon = "1.6.1"
 multibitset = { path = "./libs/multibitset" }
 fixedbitset = { path = "./libs/fixedbitset" }
 nauty-Traces-sys = "0.3.0"
-# nauty-Traces-sys = { path = "../nauty-Traces-sys" }
 bitvec = "1.0.1"
-
-
-[dev-dependencies]
-criterion = "0.3"
-
-[[bench]]
-name = "benchmark"
-harness = false
+clap = { version = "4.1.8", features = ["derive"] }
 
 [profile.release-with-debug]
 inherits = "release"
