@@ -1,8 +1,5 @@
 use bitvec::prelude::*;
-use nauty_Traces_sys::{
-    densenauty, empty_graph, optionblk, statsblk, ADDONEARC,
-    SETWORDSNEEDED,
-};
+use nauty_Traces_sys::{densenauty, empty_graph, optionblk, statsblk, ADDONEARC, SETWORDSNEEDED};
 use std::os::raw::c_int;
 
 /// A dense graph representation for use with nauty.
