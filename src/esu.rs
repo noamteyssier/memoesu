@@ -22,9 +22,9 @@ where
         );
     });
 
-    eprintln!(">> Num subgraphs       : {num_subgraphs}");
-    eprintln!(">> Unique subgraphs    : {}", canon_counts.len());
-    eprintln!(">> Duplicate Subgraphs : {num_dups}");
+    eprintln!(">> Num subgraphs           : {num_subgraphs}");
+    eprintln!(">> Unique subgraphs        : {}", canon_counts.len());
+    eprintln!(">> Duplicate Subgraphs     : {num_dups}");
 
     canon_counts
 }
