@@ -146,22 +146,6 @@ impl Nodes {
     }
 }
 
-#[allow(non_snake_case)]
-fn DELONEARC(g: &mut [u64], v: usize, w: usize, m: usize) {
-    DELELEMENT(GRAPHROW(g, v, m), w);
-}
-
-#[allow(non_snake_case)]
-fn DELONEEDGE(g: &mut [u64], v: usize, w: usize, m: usize) {
-    DELONEARC(g, v, w, m);
-    DELONEARC(g, w, v, m);
-}
-
-#[allow(non_snake_case)]
-fn DELELEMENT(setadd: &mut [set], pos: usize) {
-    setadd[SETWD(pos)] &= !bit[SETBT(pos)]
-}
-
 fn opts_default_undir() -> optionblk {
     optionblk {
         getcanon: 1,
