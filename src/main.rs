@@ -20,15 +20,18 @@ fn submodule_enumerate(
     subgraph_size: usize,
     output: Option<String>,
     num_threads: Option<usize>,
+    include_loops: bool,
 ) -> Result<()> {
+
     // Load the graph.
-    let graph = io::load_numeric_graph(filepath)?;
+    let graph = io::load_numeric_graph(filepath, include_loops)?;
 
     eprintln!("----------------------------------------");
     eprintln!("Log");
     eprintln!("----------------------------------------");
     eprintln!(">> Number of nodes         : {}", graph.node_count());
     eprintln!(">> Number of edges         : {}", graph.edge_count());
+    eprintln!(">> Including loops         : {include_loops}");
 
     // Enumerate the subgraphs.
     let now = std::time::Instant::now();
@@ -84,8 +87,8 @@ fn main() -> Result<()> {
             output,
             subgraph_size,
             threads,
-            loops,
-        } => submodule_enumerate(&input, subgraph_size, output, threads),
+            include_loops,
+        } => submodule_enumerate(&input, subgraph_size, output, threads, include_loops),
         cli::Mode::Format { 
             input, 
             output, 

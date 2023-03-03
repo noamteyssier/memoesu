@@ -86,19 +86,23 @@ impl FormatGraph {
 /// Load a graph from a file
 ///
 /// Expects a 1-Indexed numeric white-space delimited edgelist.
-pub fn load_numeric_graph(filepath: &str) -> Result<Graph<(), (), Directed>> {
+pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(), (), Directed>> {
     let reader = File::open(filepath).map(BufReader::new)?;
     let mut edges = Vec::new();
+    let mut num_filtered = 0;
     for line in reader.lines() {
         let line = line.unwrap();
         let mut split = line.split_whitespace();
         let u = split.next().unwrap().parse::<u32>()?;
         let v = split.next().unwrap().parse::<u32>()?;
-        if u == v {
-            eprintln!("Skipping self loop: {}", u);
+        if !include_loops && u == v {
+            num_filtered += 1;
         } else {
             edges.push((u, v));
         }
+    }
+    if num_filtered > 0 {
+        eprintln!(">> Number of loops skipped : {num_filtered}");
     }
     Ok(Graph::from_edges(&edges))
 }
