@@ -1,7 +1,7 @@
 use anyhow::Result;
 use bitvec::{prelude::Msb0, view::BitView};
 use graph6_rs::write_graph6;
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use petgraph::{Directed, Graph};
 use std::{
     fs::File,
@@ -22,7 +22,7 @@ impl FormatGraph {
     pub fn from_filepath(filepath: &str, filter_loops: bool) -> Result<Self> {
         let reader = File::open(filepath).map(BufReader::new)?;
         let mut map = HashMap::new();
-        let mut edges: Vec<(u32, u32)> = Vec::new();
+        let mut edges = HashSet::new();
         let mut num_filtered = 0;
 
         for line in reader.lines() {
@@ -46,7 +46,7 @@ impl FormatGraph {
                 map.insert(v.to_string(), map.len() as u32);
             }
 
-            edges.push((map[u], map[v]));
+            edges.insert((map[u], map[v]));
         }
 
         let graph = Graph::from_edges(&edges);
