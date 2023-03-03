@@ -1,14 +1,19 @@
 use crate::{bitgraph::BitGraph, walker::Walker};
-use hashbrown::HashMap;
 use petgraph::{EdgeType, Graph};
 
-pub fn enumerate_subgraphs<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize) -> HashMap<Vec<u64>, usize>
+type CanonCounts = hashbrown::HashMap<Vec<u64>, usize>;
+type Memo = hashbrown::HashMap<Vec<u64>, Vec<u64>>;
+
+pub fn enumerate_subgraphs<N, E, Ty>(
+    graph: &Graph<N, E, Ty>,
+    k: usize,
+) -> hashbrown::HashMap<Vec<u64>, usize>
 where
     Ty: EdgeType,
 {
     let bitgraph = BitGraph::from_graph(graph);
-    let mut canon_counts = HashMap::with_capacity(bitgraph.n * k);
-    let mut memo = HashMap::with_capacity(bitgraph.n * k);
+    let mut canon_counts = CanonCounts::with_capacity(bitgraph.n * k);
+    let mut memo = Memo::with_capacity(bitgraph.n * k);
     let mut num_subgraphs = 0;
     let mut num_dups = 0;
     (0..bitgraph.n).for_each(|v| {
@@ -30,8 +35,8 @@ where
 }
 
 fn extend_subgraph(
-    canon_counts: &mut HashMap<Vec<u64>, usize>,
-    memo: &mut HashMap<Vec<u64>, Vec<u64>>,
+    canon_counts: &mut CanonCounts,
+    memo: &mut Memo,
     num_subgraphs: &mut usize,
     num_dups: &mut usize,
     walker: &mut Walker,
@@ -51,7 +56,7 @@ fn extend_subgraph(
             } else {
                 let label = walker.run_nauty();
                 memo.insert(walker.nauty_graph().to_vec(), label.clone());
-                *canon_counts.entry(label).or_insert(0) += 1;
+                *canon_counts.entry(label.clone()).or_insert(0) += 1;
             }
             *num_subgraphs += 1;
             walker.clear_nauty();

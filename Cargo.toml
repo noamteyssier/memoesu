@@ -19,6 +19,7 @@ fixedbitset = { path = "./libs/fixedbitset" }
 nauty-Traces-sys = "0.3.0"
 bitvec = "1.0.1"
 clap = { version = "4.1.8", features = ["derive"] }
+flurry = "0.4.0"
 
 [profile.release-with-debug]
 inherits = "release"

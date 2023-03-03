@@ -6,7 +6,7 @@ use multibitset::MultiBitSet;
 #[derive(Debug)]
 pub struct Walker<'a> {
     /// A reference to the underlying bitgraph.
-    bitgraph: &'a BitGraph,
+    pub bitgraph: &'a BitGraph,
 
     /// The subgraph of the current walk.
     subgraph: Vec<usize>,
@@ -30,7 +30,7 @@ pub struct Walker<'a> {
     parent: Vec<usize>,
 
     /// The maximum size of the subgraph.
-    k: usize,
+    pub k: usize,
 
     /// The current depth of the walk.
     pub depth: usize,
