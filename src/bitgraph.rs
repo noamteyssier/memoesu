@@ -38,8 +38,13 @@ impl BitGraph {
         &self.u_adj[v]
     }
 
+    #[allow(dead_code)]
     pub fn neighbors_directed(&self, v: usize) -> &FixedBitSet {
         &self.d_adj[v]
+    }
+
+    pub fn neighbors_directed_unchecked(&self, v: usize) -> &FixedBitSet {
+        unsafe { self.d_adj.get_unchecked(v) }
     }
 }
 

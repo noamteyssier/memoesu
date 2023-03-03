@@ -205,7 +205,7 @@ impl<'a> Walker<'a> {
         // Fill the nauty graph with the subgraph
         for (idx, u) in self.subgraph.iter().enumerate() {
             for (jdx, v) in self.subgraph.iter().enumerate() {
-                if self.bitgraph.neighbors_directed(*u).contains(*v) {
+                if self.bitgraph.neighbors_directed_unchecked(*u).contains(*v) {
                     self.nauty_graph.add_arc(idx, jdx);
                 }
             }
