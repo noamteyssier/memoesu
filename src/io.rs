@@ -14,10 +14,18 @@ pub struct FormatGraph {
     num_filtered: usize,
 }
 impl FormatGraph {
-    pub fn new(graph: Graph<(), (), Directed>, node_dict: HashMap<String, u32>, num_filtered: usize) -> Self {
-        Self { graph, node_dict, num_filtered }
+    pub fn new(
+        graph: Graph<(), (), Directed>,
+        node_dict: HashMap<String, u32>,
+        num_filtered: usize,
+    ) -> Self {
+        Self {
+            graph,
+            node_dict,
+            num_filtered,
+        }
     }
-    
+
     /// Reads a graph from a file path.
     pub fn from_filepath(filepath: &str, filter_loops: bool) -> Result<Self> {
         let reader = File::open(filepath).map(BufReader::new)?;
@@ -26,7 +34,6 @@ impl FormatGraph {
         let mut num_filtered = 0;
 
         for line in reader.lines() {
-
             let line = line.unwrap();
             let mut split = line.split_whitespace();
 
@@ -95,7 +102,7 @@ pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(
         let u = split.next().unwrap().parse::<u32>()?;
         let v = split.next().unwrap().parse::<u32>()?;
         if !include_loops && u == v {
-            continue
+            continue;
         } else {
             edges.push((u, v));
         }

@@ -44,6 +44,5 @@ pub enum Mode {
         /// Filter out loops (i.e. a node connects to itself) [default: false]
         #[arg(short = 'l', long)]
         filter_loops: bool,
-        
-    }
+    },
 }

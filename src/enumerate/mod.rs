@@ -5,9 +5,9 @@ mod ngraph;
 mod parallel_esu;
 mod walker;
 
-pub use esu::enumerate_subgraphs;
-pub use parallel_esu::parallel_enumerate_subgraphs;
 use bitgraph::BitGraph;
+pub use esu::enumerate_subgraphs;
 use multibitset::MultiBitSet;
 use ngraph::NautyGraph;
+pub use parallel_esu::parallel_enumerate_subgraphs;
 use walker::Walker;

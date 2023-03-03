@@ -1,5 +1,5 @@
-use std::fmt::Debug;
 use super::{BitGraph, MultiBitSet, NautyGraph};
+use std::fmt::Debug;
 
 #[derive(Debug)]
 pub struct Walker<'a> {

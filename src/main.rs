@@ -5,8 +5,8 @@ mod io;
 use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
-use io::FormatGraph;
 use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs};
+use io::FormatGraph;
 
 /// Enumerate the subgraphs of a given size in a graph.
 fn submodule_enumerate(
@@ -16,7 +16,6 @@ fn submodule_enumerate(
     num_threads: Option<usize>,
     include_loops: bool,
 ) -> Result<()> {
-
     // Load the graph.
     let graph = io::load_numeric_graph(filepath, include_loops)?;
 
@@ -83,10 +82,10 @@ fn main() -> Result<()> {
             threads,
             include_loops,
         } => submodule_enumerate(&input, subgraph_size, output, threads, include_loops),
-        cli::Mode::Format { 
-            input, 
-            output, 
+        cli::Mode::Format {
+            input,
+            output,
             filter_loops,
-        } => submodule_format(&input, &output, filter_loops)
+        } => submodule_format(&input, &output, filter_loops),
     }
 }
