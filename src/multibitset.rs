@@ -97,7 +97,7 @@ impl MultiBitSet {
 
     /// Performs an inplace union on self at `i` with the index `j` in another `MultiBitSet`
     pub fn union_with(&mut self, other: &Self, i: usize, j: usize) {
-        self.data[i].union_with(&other.data[j]);
+        self.data[i].union_with_unchecked(&other.data[j]);
     }
 
     /// Performs an inplace difference on self at `i` with the index `j` in another `MultiBitSet`
