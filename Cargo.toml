@@ -23,3 +23,6 @@ flurry = "0.4.0"
 [profile.release-with-debug]
 inherits = "release"
 debug = true
+
+[profile.release]
+lto = true
