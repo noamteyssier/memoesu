@@ -203,14 +203,10 @@ impl<'a> Walker<'a> {
 
     pub fn fill_nauty(&mut self) {
         // Fill the nauty graph with the subgraph
-        for i in 0..=self.depth {
-            for j in 0..=self.depth {
-                if self
-                    .bitgraph
-                    .neighbors_directed(self.subgraph[i])
-                    .contains(self.subgraph[j])
-                {
-                    self.nauty_graph.add_arc(i, j);
+        for (idx, u) in self.subgraph.iter().enumerate() {
+            for (jdx, v) in self.subgraph.iter().enumerate() {
+                if self.bitgraph.neighbors_directed(*u).contains(*v) {
+                    self.nauty_graph.add_arc(idx, jdx);
                 }
             }
         }
