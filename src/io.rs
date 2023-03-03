@@ -11,17 +11,19 @@ use std::{
 pub struct FormatGraph {
     graph: Graph<(), (), Directed>,
     node_dict: HashMap<String, u32>,
+    num_filtered: usize,
 }
 impl FormatGraph {
-    pub fn new(graph: Graph<(), (), Directed>, node_dict: HashMap<String, u32>) -> Self {
-        Self { graph, node_dict }
+    pub fn new(graph: Graph<(), (), Directed>, node_dict: HashMap<String, u32>, num_filtered: usize) -> Self {
+        Self { graph, node_dict, num_filtered }
     }
     
     /// Reads a graph from a file path.
-    pub fn from_filepath(filepath: &str) -> Result<Self> {
+    pub fn from_filepath(filepath: &str, filter_loops: bool) -> Result<Self> {
         let reader = File::open(filepath).map(BufReader::new)?;
         let mut map = HashMap::new();
         let mut edges: Vec<(u32, u32)> = Vec::new();
+        let mut num_filtered = 0;
 
         for line in reader.lines() {
 
@@ -30,6 +32,11 @@ impl FormatGraph {
 
             let u = split.next().unwrap();
             let v = split.next().unwrap();
+
+            if filter_loops && u == v {
+                num_filtered += 1;
+                continue;
+            }
 
             // Add the nodes to the node dictionary if they are not already present.
             if !map.contains_key(u) {
@@ -43,14 +50,14 @@ impl FormatGraph {
         }
 
         let graph = Graph::from_edges(&edges);
-        Ok(Self::new(graph, map))
+        Ok(Self::new(graph, map, num_filtered))
     }
 
     pub fn write_graph(&self, output: &str) -> Result<()> {
         let mut buffer = File::create(output).map(BufWriter::new)?;
         for edge_idx in self.graph.edge_indices() {
             let (u, v) = self.graph.edge_endpoints(edge_idx).unwrap();
-            writeln!(buffer, "{} {}", u.index() + 1, v.index() + 1)?;
+            writeln!(buffer, "{}\t{}", u.index() + 1, v.index() + 1)?;
         }
         Ok(())
     }
@@ -58,7 +65,7 @@ impl FormatGraph {
     pub fn write_node_dict(&self, output: &str) -> Result<()> {
         let mut buffer = File::create(output).map(BufWriter::new)?;
         for (node, idx) in self.node_dict.iter() {
-            writeln!(buffer, "{} {}", node, idx + 1)?;
+            writeln!(buffer, "{}\t{}", node, idx + 1)?;
         }
         Ok(())
     }
@@ -69,6 +76,10 @@ impl FormatGraph {
 
     pub fn edge_count(&self) -> usize {
         self.graph.edge_count()
+    }
+
+    pub fn loops_removed(&self) -> usize {
+        self.num_filtered
     }
 }
 

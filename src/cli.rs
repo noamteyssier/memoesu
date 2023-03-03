@@ -36,5 +36,9 @@ pub enum Mode {
         /// Output file prefix to write graph and node dictionary with
         #[arg(short, long)]
         output: String,
+
+        /// Filter out loops (i.e. a node connects to itself) [default: false]
+        #[arg(short, long)]
+        filter_loops: bool,
     }
 }

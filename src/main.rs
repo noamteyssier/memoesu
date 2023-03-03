@@ -53,16 +53,19 @@ fn submodule_enumerate(
     Ok(())
 }
 
-fn submodule_format(input: &str, prefix: &str) -> Result<()> {
+fn submodule_format(input: &str, prefix: &str, filter_loops: bool) -> Result<()> {
     let network_path = format!("{prefix}.network.tsv");
     let dict_path = format!("{prefix}.dictionary.tsv");
 
     // Load the graph.
-    let format_graph = FormatGraph::from_filepath(input)?;
+    let format_graph = FormatGraph::from_filepath(input, filter_loops)?;
 
     eprintln!(">> Reading graph from {}", input);
     eprintln!(">> Found {} nodes", format_graph.node_count());
     eprintln!(">> Found {} edges", format_graph.edge_count());
+    if filter_loops {
+        eprintln!(">> Filtered out {} loops", format_graph.loops_removed());
+    }
     eprintln!(">> Writing graph to {}", network_path);
     eprintln!(">> Writing node dictionary to {}", dict_path);
 
@@ -81,10 +84,12 @@ fn main() -> Result<()> {
             output,
             subgraph_size,
             threads,
+            loops,
         } => submodule_enumerate(&input, subgraph_size, output, threads),
         cli::Mode::Format { 
             input, 
             output, 
-        } => submodule_format(&input, &output),
+            filter_loops,
+        } => submodule_format(&input, &output, filter_loops)
     }
 }
