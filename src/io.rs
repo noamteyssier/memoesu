@@ -101,9 +101,6 @@ pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(
             edges.push((u, v));
         }
     }
-    if num_filtered > 0 {
-        eprintln!(">> Number of loops skipped : {num_filtered}");
-    }
     Ok(Graph::from_edges(&edges))
 }
 
