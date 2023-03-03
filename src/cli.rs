@@ -45,4 +45,24 @@ pub enum Mode {
         #[arg(short = 'l', long)]
         filter_loops: bool,
     },
+
+    /// Creates a random graphs that preserves node degrees using
+    /// the switch model. (Note that loops will be removed)
+    Switch {
+        /// File path to the input graph (white space separated edgelist)
+        #[arg(short, long)]
+        input: String,
+
+        /// Output file path to write results to (default: stdout)
+        #[arg(short, long)]
+        output: Option<String>,
+
+        /// Number of operations to perform (total = q * num_edges)
+        #[arg(short, long, default_value = "100")]
+        q: usize,
+
+        /// Seed for the random number generator
+        #[arg(short, long)]
+        seed: Option<u8>,
+    }
 }

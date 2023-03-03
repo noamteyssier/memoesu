@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, bail};
 use bitvec::{prelude::Msb0, view::BitView};
 use graph6_rs::write_graph6;
 use hashbrown::{HashMap, HashSet};
@@ -159,4 +159,26 @@ fn graph_to_flat_adj(graph: &[u64], n: usize) -> Vec<usize> {
         }
     }
     adj
+}
+
+/// Write a graph to a file
+pub fn write_graph(graph: &Graph<(), (), Directed>, output: Option<String>) -> Result<()> {
+    if let Some(filepath) = output {
+        let mut buffer = File::create(filepath).map(BufWriter::new)?;
+        write_graph_to_buffer(&mut buffer, graph)
+    } else {
+        let mut buffer = BufWriter::new(stdout().lock());
+        write_graph_to_buffer(&mut buffer, graph)
+    }
+}
+
+pub fn write_graph_to_buffer<W: Write>(
+    buffer: &mut BufWriter<W>,
+    graph: &Graph<(), (), Directed>,
+) -> Result<()> {
+    for edge_idx in graph.edge_indices() {
+        let (u, v) = graph.edge_endpoints(edge_idx).unwrap();
+        writeln!(buffer, "{}\t{}", u.index(), v.index())?;
+    }
+    Ok(())
 }
