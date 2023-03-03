@@ -1,6 +1,6 @@
 use petgraph::{
     graph::{EdgeIndex, NodeIndex},
-    Directed, Graph,
+    Directed, Graph, EdgeType,
 };
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
@@ -33,14 +33,8 @@ pub fn switching(graph: &Graph<(), (), Directed>, q: usize, seed: u8) -> Graph<(
         let (x1, x2) = rgraph.edge_endpoints(idx).unwrap();
         let (y1, y2) = rgraph.edge_endpoints(jdx).unwrap();
 
-        // Check if there already exists an edge from x1 => y2 or from y1 => x2.
-        // If so, we cannot perform the switch.
-        if rgraph.contains_edge(x1, y2) || rgraph.contains_edge(y1, x2) {
-            continue;
-        }
-        // Check if this switch would create a loop.
-        // If so, we cannot perform the switch.
-        else if x1 == y2 || y1 == x2 || x2 == y2 {
+        // Check if the switch is valid and continue if not.
+        if is_invalid_switch(&rgraph, x1, x2, y1, y2) {
             continue;
         }
 
@@ -49,6 +43,23 @@ pub fn switching(graph: &Graph<(), (), Directed>, q: usize, seed: u8) -> Graph<(
         num_switches += 1;
     }
     rgraph
+}
+
+// Check if there already exists an edge from x1 => y2 or from y1 => x2.
+// Check if this switch would create a loop.
+// If so, we cannot perform the switch.
+fn is_invalid_switch<N, E, Ty: EdgeType>(graph: &Graph<N, E, Ty>, x1: NodeIndex, x2: NodeIndex, y1: NodeIndex, y2: NodeIndex) -> bool {
+    would_duplicate(graph, x1, x2, y1, y2) || would_loop(x1, x2, y1, y2)
+}
+
+/// Checks if the switch would create duplicate edges.
+fn would_duplicate<N, E, Ty: EdgeType>(graph: &Graph<N, E, Ty>, x1: NodeIndex, x2: NodeIndex, y1: NodeIndex, y2: NodeIndex) -> bool {
+    graph.contains_edge(x1, y2) || graph.contains_edge(y1, x2)
+}
+
+/// Checks if the switch would create a loop.
+fn would_loop(x1: NodeIndex, x2: NodeIndex, y1: NodeIndex, y2: NodeIndex) -> bool {
+    x1 == y2 || y1 == x2 || x2 == y2
 }
 
 /// Samples two distinct random edges from a graph.
