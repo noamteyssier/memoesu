@@ -8,7 +8,6 @@ use clap::Parser;
 use cli::Cli;
 use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs};
 use io::FormatGraph;
-use petgraph::Direction::Outgoing;
 
 /// Enumerate the subgraphs of a given size in a graph.
 fn submodule_enumerate(
