@@ -15,7 +15,6 @@ where
     let bitgraph = BitGraph::from_graph(graph);
     let memo = Memo::with_capacity(bitgraph.n * k);
     let (canon_counts, num_subgraphs, num_dups) = (0..bitgraph.n)
-        .into_iter()
         .par_bridge()
         .map(|v| {
             let mut walker = Walker::new(&bitgraph, v, k);
