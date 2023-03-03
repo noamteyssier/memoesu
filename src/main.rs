@@ -11,6 +11,7 @@ use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
 use esu::enumerate_subgraphs;
+use io::FormatGraph;
 use parallel_esu::parallel_enumerate_subgraphs;
 
 /// Enumerate the subgraphs of a given size in a graph.
@@ -21,7 +22,7 @@ fn submodule_enumerate(
     num_threads: Option<usize>,
 ) -> Result<()> {
     // Load the graph.
-    let graph = io::load_graph(filepath)?;
+    let graph = io::load_numeric_graph(filepath)?;
 
     eprintln!("----------------------------------------");
     eprintln!("Log");
@@ -52,6 +53,26 @@ fn submodule_enumerate(
     Ok(())
 }
 
+fn submodule_format(input: &str, prefix: &str) -> Result<()> {
+    let network_path = format!("{prefix}.network.tsv");
+    let dict_path = format!("{prefix}.dictionary.tsv");
+
+    // Load the graph.
+    let format_graph = FormatGraph::from_filepath(input)?;
+
+    eprintln!(">> Reading graph from {}", input);
+    eprintln!(">> Found {} nodes", format_graph.node_count());
+    eprintln!(">> Found {} edges", format_graph.edge_count());
+    eprintln!(">> Writing graph to {}", network_path);
+    eprintln!(">> Writing node dictionary to {}", dict_path);
+
+    // Write the graph and node dictionary to the output files.
+    format_graph.write_graph(&network_path)?;
+    format_graph.write_node_dict(&dict_path)?;
+
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.mode {
@@ -61,5 +82,9 @@ fn main() -> Result<()> {
             subgraph_size,
             threads,
         } => submodule_enumerate(&input, subgraph_size, output, threads),
+        cli::Mode::Format { 
+            input, 
+            output, 
+        } => submodule_format(&input, &output),
     }
 }

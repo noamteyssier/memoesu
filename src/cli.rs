@@ -26,4 +26,15 @@ pub enum Mode {
         #[arg(short, long)]
         threads: Option<usize>,
     },
+
+    /// Formats an input graph into a usable format for `memoesu`
+    Format {
+        /// File path to the input graph (white space separated edgelist)
+        #[arg(short, long)]
+        input: String,
+
+        /// Output file prefix to write graph and node dictionary with
+        #[arg(short, long)]
+        output: String,
+    }
 }
