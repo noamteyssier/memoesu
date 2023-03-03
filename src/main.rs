@@ -2,6 +2,7 @@ mod bitgraph;
 mod esu;
 mod io;
 mod ngraph;
+mod multibitset;
 mod parallel_esu;
 mod walker;
 

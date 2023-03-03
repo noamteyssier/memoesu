@@ -1,6 +1,7 @@
 use fixedbitset::{FixedBitSet, IndexRange};
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct MultiBitSet {
     /// The underlying bitsets in this data structure
     data: Vec<FixedBitSet>,
@@ -19,16 +20,19 @@ impl MultiBitSet {
     }
 
     /// Returns the number of bits in each bitset
+    #[allow(dead_code)]
     pub fn n(&self) -> usize {
         self.n
     }
 
     /// Returns the number of bitsets
+    #[allow(dead_code)]
     pub fn len(&self) -> usize {
         self.m
     }
 
     /// Returns the total number of bits in this data structure
+    #[allow(dead_code)]
     pub fn bitsize(&self) -> usize {
         self.n * self.m
     }
@@ -53,6 +57,7 @@ impl MultiBitSet {
     }
 
     /// Performs an inplace difference of the bitsets at indices `i` with an external bitset `ext`
+    #[allow(dead_code)]
     pub fn inplace_external_difference(&mut self, i: usize, ext: &FixedBitSet) {
         self.data[i].difference_with(ext);
     }
@@ -84,6 +89,7 @@ impl MultiBitSet {
     }
 
     /// Performs an inplace difference of the bitsets at indices `i` and `j` onto the bitset at index `i`
+    #[allow(dead_code)]
     pub fn inplace_difference(&mut self, i: usize, j: usize) {
         let (a, b) = self.mutable_references(i, j);
         a.difference_with(b);
