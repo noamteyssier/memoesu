@@ -101,10 +101,13 @@ pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(
         let mut split = line.split_whitespace();
         let u = split.next().unwrap().parse::<u32>()?;
         let v = split.next().unwrap().parse::<u32>()?;
+        if u == 0 || v == 0 {
+            bail!("ERROR: Found a node index: 0; Please use 1-indexed node indices.");
+        }
         if !include_loops && u == v {
             continue;
         } else {
-            edges.push((u, v));
+            edges.push((u-1, v-1));
         }
     }
     Ok(Graph::from_edges(&edges))
