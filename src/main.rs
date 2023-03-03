@@ -13,6 +13,7 @@ use cli::Cli;
 use esu::enumerate_subgraphs;
 use parallel_esu::parallel_enumerate_subgraphs;
 
+/// Enumerate the subgraphs of a given size in a graph.
 fn submodule_enumerate(
     filepath: &str,
     subgraph_size: usize,
