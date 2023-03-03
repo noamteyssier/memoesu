@@ -112,7 +112,11 @@ impl MultiBitSet {
     pub fn pprint(&self) -> String {
         let mut s = String::new();
         for i in 0..self.m {
-            s.push_str(&format!("{}: {:?}\n", i, self.data[i].ones().collect::<Vec<_>>()));
+            s.push_str(&format!(
+                "{}: {:?}\n",
+                i,
+                self.data[i].ones().collect::<Vec<_>>()
+            ));
         }
         s
     }

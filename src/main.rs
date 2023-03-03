@@ -2,8 +2,8 @@ mod bitgraph;
 mod cli;
 mod esu;
 mod io;
-mod ngraph;
 mod multibitset;
+mod ngraph;
 mod parallel_esu;
 mod walker;
 
@@ -14,11 +14,11 @@ use esu::enumerate_subgraphs;
 use parallel_esu::parallel_enumerate_subgraphs;
 
 fn submodule_enumerate(
-        filepath: &str, 
-        subgraph_size: usize, 
-        output: Option<String>, 
-        num_threads: Option<usize>) -> Result<()> {
-
+    filepath: &str,
+    subgraph_size: usize,
+    output: Option<String>,
+    num_threads: Option<usize>,
+) -> Result<()> {
     // Load the graph.
     let graph = io::load_graph(filepath)?;
 
@@ -49,7 +49,6 @@ fn submodule_enumerate(
     io::write_counts(&canon_counts, subgraph_size, output)?;
 
     Ok(())
-
 }
 
 fn main() -> Result<()> {

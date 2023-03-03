@@ -8,7 +8,6 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Mode {
-
     /// Enumerate all subgraphs of a given size in a graph.
     Enumerate {
         /// File path to the input graph (white space separated edgelist)
