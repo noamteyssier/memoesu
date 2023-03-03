@@ -70,6 +70,7 @@ impl MultiBitSet {
     /// # Panics
     /// Panics if `i` or `j` are out of bounds
     /// Panics if `i` and `j` are equal
+    #[inline]
     fn mutable_references(&mut self, i: usize, j: usize) -> (&mut FixedBitSet, &mut FixedBitSet) {
         let mid = i.min(j);
         let (left, right) = self.data.split_at_mut(mid + 1);
