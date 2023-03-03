@@ -201,15 +201,16 @@ impl<'a> Walker<'a> {
         self.nauty_graph.graph()
     }
 
+    /// Fill the nauty graph with the subgraph
     pub fn fill_nauty(&mut self) {
-        // Fill the nauty graph with the subgraph
-        for (idx, u) in self.subgraph.iter().enumerate() {
-            for (jdx, v) in self.subgraph.iter().enumerate() {
-                if self.bitgraph.neighbors_directed_unchecked(*u).contains(*v) {
+        self.subgraph.iter().enumerate().for_each(|(idx, u)| {
+            let neighbors = self.bitgraph.neighbors_directed_unchecked(*u);
+            self.subgraph.iter().enumerate().for_each(|(jdx, v)| {
+                if neighbors.contains(*v) {
                     self.nauty_graph.add_arc(idx, jdx);
                 }
-            }
-        }
+            });
+        });
     }
 
     pub fn run_nauty(&mut self) -> Vec<u64> {
