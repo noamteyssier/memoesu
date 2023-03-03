@@ -1,18 +1,12 @@
-mod bitgraph;
 mod cli;
-mod esu;
+mod enumerate;
 mod io;
-mod multibitset;
-mod ngraph;
-mod parallel_esu;
-mod walker;
 
 use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
-use esu::enumerate_subgraphs;
 use io::FormatGraph;
-use parallel_esu::parallel_enumerate_subgraphs;
+use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs};
 
 /// Enumerate the subgraphs of a given size in a graph.
 fn submodule_enumerate(

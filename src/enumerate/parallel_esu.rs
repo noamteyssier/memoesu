@@ -1,4 +1,4 @@
-use crate::{bitgraph::BitGraph, walker::Walker};
+use super::{BitGraph, Walker};
 use petgraph::{EdgeType, Graph};
 use rayon::prelude::*;
 
