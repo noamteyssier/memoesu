@@ -4,7 +4,10 @@ use petgraph::{EdgeType, Graph};
 type CanonCounts = hashbrown::HashMap<Vec<u64>, usize>;
 type Memo = hashbrown::HashMap<Vec<u64>, Vec<u64>>;
 
-pub fn enumerate_subgraphs<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize) -> hashbrown::HashMap<Vec<u64>, usize>
+pub fn enumerate_subgraphs<N, E, Ty>(
+    graph: &Graph<N, E, Ty>,
+    k: usize,
+) -> hashbrown::HashMap<Vec<u64>, usize>
 where
     Ty: EdgeType,
 {
@@ -13,17 +16,16 @@ where
     let mut memo = Memo::with_capacity(bitgraph.n * k);
     let mut num_subgraphs = 0;
     let mut num_dups = 0;
-    (0..bitgraph.n)
-        .for_each(|v| {
-            let mut walker = Walker::new(&bitgraph, v, k);
-            extend_subgraph(
-                &mut canon_counts,
-                &mut memo,
-                &mut num_subgraphs,
-                &mut num_dups,
-                &mut walker,
-            );
-        });
+    (0..bitgraph.n).for_each(|v| {
+        let mut walker = Walker::new(&bitgraph, v, k);
+        extend_subgraph(
+            &mut canon_counts,
+            &mut memo,
+            &mut num_subgraphs,
+            &mut num_dups,
+            &mut walker,
+        );
+    });
 
     eprintln!(">> Num subgraphs           : {num_subgraphs}");
     eprintln!(">> Unique subgraphs        : {}", canon_counts.len());

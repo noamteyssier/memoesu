@@ -49,7 +49,7 @@ fn main() -> Result<()> {
             .build_global()?;
         parallel_enumerate_subgraphs(&graph, cli.subgraph_size)
     } else {
-        enumerate_subgraphs(&graph, cli.subgraph_size) 
+        enumerate_subgraphs(&graph, cli.subgraph_size)
     };
     eprintln!(">> Finished enumeration in : {:?}", now.elapsed());
 

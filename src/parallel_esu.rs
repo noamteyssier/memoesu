@@ -5,7 +5,10 @@ use rayon::prelude::*;
 type CanonCounts = hashbrown::HashMap<Vec<u64>, usize>;
 type Memo = flurry::HashMap<Vec<u64>, Vec<u64>>;
 
-pub fn parallel_enumerate_subgraphs<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize) -> hashbrown::HashMap<Vec<u64>, usize>
+pub fn parallel_enumerate_subgraphs<N, E, Ty>(
+    graph: &Graph<N, E, Ty>,
+    k: usize,
+) -> hashbrown::HashMap<Vec<u64>, usize>
 where
     Ty: EdgeType,
 {
@@ -77,4 +80,3 @@ fn parallel_extend_subgraph(
         }
     }
 }
-
