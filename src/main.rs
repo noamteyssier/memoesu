@@ -1,60 +1,98 @@
 mod bitgraph;
+mod cli;
 mod esu;
 mod io;
-mod ngraph;
 mod multibitset;
+mod ngraph;
 mod parallel_esu;
 mod walker;
 
 use anyhow::Result;
 use clap::Parser;
+use cli::Cli;
 use esu::enumerate_subgraphs;
+use io::FormatGraph;
 use parallel_esu::parallel_enumerate_subgraphs;
 
-#[derive(Parser, Debug)]
-pub struct Cli {
-    /// File path to the input graph (white space separated edgelist)
-    #[arg(short, long)]
-    input: String,
-
-    /// Output file path to write results to (default: stdout)
-    #[arg(short, long)]
-    output: Option<String>,
-
-    /// Number of subgraphs to find in the input graph
-    #[arg(short, long)]
+/// Enumerate the subgraphs of a given size in a graph.
+fn submodule_enumerate(
+    filepath: &str,
     subgraph_size: usize,
-
-    /// Number of threads to use (default: 1)
-    #[arg(short, long)]
-    threads: Option<usize>,
-}
-
-fn main() -> Result<()> {
-    let cli = Cli::parse();
+    output: Option<String>,
+    num_threads: Option<usize>,
+    include_loops: bool,
+) -> Result<()> {
 
     // Load the graph.
-    let graph = io::load_graph(&cli.input)?;
+    let graph = io::load_numeric_graph(filepath, include_loops)?;
 
     eprintln!("----------------------------------------");
     eprintln!("Log");
     eprintln!("----------------------------------------");
     eprintln!(">> Number of nodes         : {}", graph.node_count());
     eprintln!(">> Number of edges         : {}", graph.edge_count());
+    eprintln!(">> Including loops         : {include_loops}");
 
     // Enumerate the subgraphs.
     let now = std::time::Instant::now();
-    let canon_counts = if let Some(num_threads) = cli.threads {
+    let canon_counts = if let Some(num_threads) = num_threads {
+        // Build a thread pool and use it to enumerate the subgraphs.
         rayon::ThreadPoolBuilder::new()
             .num_threads(num_threads)
             .build_global()?;
-        parallel_enumerate_subgraphs(&graph, cli.subgraph_size)
+
+        // Run the enumeration in parallel.
+        parallel_enumerate_subgraphs(&graph, subgraph_size)
     } else {
-        enumerate_subgraphs(&graph, cli.subgraph_size)
+        // Run the enumeration in serial.
+        enumerate_subgraphs(&graph, subgraph_size)
     };
+
     eprintln!(">> Finished enumeration in : {:?}", now.elapsed());
 
     // Write the results to the output file.
-    io::write_counts(&canon_counts, cli.subgraph_size, cli.output)?;
+    io::write_counts(&canon_counts, subgraph_size, output)?;
+
     Ok(())
+}
+
+fn submodule_format(input: &str, prefix: &str, filter_loops: bool) -> Result<()> {
+    let network_path = format!("{prefix}.network.tsv");
+    let dict_path = format!("{prefix}.dictionary.tsv");
+
+    // Load the graph.
+    let format_graph = FormatGraph::from_filepath(input, filter_loops)?;
+
+    eprintln!(">> Reading graph from {}", input);
+    eprintln!(">> Found {} nodes", format_graph.node_count());
+    eprintln!(">> Found {} edges", format_graph.edge_count());
+    if filter_loops {
+        eprintln!(">> Filtered out {} loops", format_graph.loops_removed());
+    }
+    eprintln!(">> Writing graph to {}", network_path);
+    eprintln!(">> Writing node dictionary to {}", dict_path);
+
+    // Write the graph and node dictionary to the output files.
+    format_graph.write_graph(&network_path)?;
+    format_graph.write_node_dict(&dict_path)?;
+
+    Ok(())
+}
+
+fn main() -> Result<()> {
+    let cli = Cli::parse();
+    match cli.mode {
+        cli::Mode::Enumerate {
+            input,
+            output,
+            subgraph_size,
+            threads,
+            include_loops,
+        } => submodule_enumerate(&input, subgraph_size, output, threads, include_loops),
+        cli::Mode::Format { 
+            input, 
+            output, 
+            filter_loops,
+        } => submodule_format(&input, &output, filter_loops)
+    }
 }
