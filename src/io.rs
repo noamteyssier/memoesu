@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 use bitvec::{prelude::Msb0, view::BitView};
 use graph6_rs::write_graph6;
 use hashbrown::{HashMap, HashSet};
@@ -14,10 +14,18 @@ pub struct FormatGraph {
     num_filtered: usize,
 }
 impl FormatGraph {
-    pub fn new(graph: Graph<(), (), Directed>, node_dict: HashMap<String, u32>, num_filtered: usize) -> Self {
-        Self { graph, node_dict, num_filtered }
+    pub fn new(
+        graph: Graph<(), (), Directed>,
+        node_dict: HashMap<String, u32>,
+        num_filtered: usize,
+    ) -> Self {
+        Self {
+            graph,
+            node_dict,
+            num_filtered,
+        }
     }
-    
+
     /// Reads a graph from a file path.
     pub fn from_filepath(filepath: &str, filter_loops: bool) -> Result<Self> {
         let reader = File::open(filepath).map(BufReader::new)?;
@@ -26,7 +34,6 @@ impl FormatGraph {
         let mut num_filtered = 0;
 
         for line in reader.lines() {
-
             let line = line.unwrap();
             let mut split = line.split_whitespace();
 
@@ -94,10 +101,13 @@ pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(
         let mut split = line.split_whitespace();
         let u = split.next().unwrap().parse::<u32>()?;
         let v = split.next().unwrap().parse::<u32>()?;
+        if u == 0 || v == 0 {
+            bail!("ERROR: Found a node index: 0; Please use 1-indexed node indices.");
+        }
         if !include_loops && u == v {
-            continue
+            continue;
         } else {
-            edges.push((u, v));
+            edges.push((u - 1, v - 1));
         }
     }
     Ok(Graph::from_edges(&edges))
@@ -152,4 +162,26 @@ fn graph_to_flat_adj(graph: &[u64], n: usize) -> Vec<usize> {
         }
     }
     adj
+}
+
+/// Write a graph to a file
+pub fn write_graph(graph: &Graph<(), (), Directed>, output: Option<String>) -> Result<()> {
+    if let Some(filepath) = output {
+        let mut buffer = File::create(filepath).map(BufWriter::new)?;
+        write_graph_to_buffer(&mut buffer, graph)
+    } else {
+        let mut buffer = BufWriter::new(stdout().lock());
+        write_graph_to_buffer(&mut buffer, graph)
+    }
+}
+
+pub fn write_graph_to_buffer<W: Write>(
+    buffer: &mut BufWriter<W>,
+    graph: &Graph<(), (), Directed>,
+) -> Result<()> {
+    for edge_idx in graph.edge_indices() {
+        let (u, v) = graph.edge_endpoints(edge_idx).unwrap();
+        writeln!(buffer, "{}\t{}", u.index(), v.index())?;
+    }
+    Ok(())
 }

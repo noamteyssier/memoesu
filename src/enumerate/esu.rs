@@ -1,4 +1,4 @@
-use crate::{bitgraph::BitGraph, walker::Walker};
+use super::{BitGraph, Walker};
 use petgraph::{EdgeType, Graph};
 
 type CanonCounts = hashbrown::HashMap<Vec<u64>, usize>;

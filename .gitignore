@@ -16,3 +16,6 @@ perf.data.old
 
 # common output file
 out.txt
+
+# justfile used in debug
+justfile
