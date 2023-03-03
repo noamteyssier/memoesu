@@ -1,5 +1,8 @@
-use petgraph::{Graph, Directed, graph::{EdgeIndex, NodeIndex}};
-use rand::{SeedableRng, Rng};
+use petgraph::{
+    graph::{EdgeIndex, NodeIndex},
+    Directed, Graph,
+};
+use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 
 /// Creates a random graph that preserves node degrees using the switch model.
@@ -23,7 +26,6 @@ pub fn switching(graph: &Graph<(), (), Directed>, q: usize, seed: u8) -> Graph<(
     let num_operations = graph.edge_count() * q;
 
     while num_switches < num_operations {
-
         // Pick two random edges.
         let (idx, jdx) = sample_edges(&mut rng, graph.edge_count());
 
@@ -35,8 +37,7 @@ pub fn switching(graph: &Graph<(), (), Directed>, q: usize, seed: u8) -> Graph<(
         // If so, we cannot perform the switch.
         if rgraph.contains_edge(x1, y2) || rgraph.contains_edge(y1, x2) {
             continue;
-        } 
-
+        }
         // Check if this switch would create a loop.
         // If so, we cannot perform the switch.
         else if x1 == y2 || y1 == x2 || x2 == y2 {
@@ -47,7 +48,7 @@ pub fn switching(graph: &Graph<(), (), Directed>, q: usize, seed: u8) -> Graph<(
         perform_switch(&mut rgraph, idx, jdx, x1, x2, y1, y2);
         num_switches += 1;
     }
-    rgraph 
+    rgraph
 }
 
 /// Samples two distinct random edges from a graph.
@@ -56,10 +57,7 @@ fn sample_edges<R: Rng>(rng: &mut R, num_edges: usize) -> (EdgeIndex, EdgeIndex)
         let u = rng.gen_range(0..num_edges);
         let v = rng.gen_range(0..num_edges);
         if u != v {
-            return (
-                EdgeIndex::new(u),
-                EdgeIndex::new(v),
-            )
+            return (EdgeIndex::new(u), EdgeIndex::new(v));
         }
     }
 }
@@ -67,26 +65,27 @@ fn sample_edges<R: Rng>(rng: &mut R, num_edges: usize) -> (EdgeIndex, EdgeIndex)
 /// Performs a switch on a graph.
 ///
 /// This is done by removing two edges and adding two new edges.
-/// The two edges are removed in the reverse order of their indices 
+/// The two edges are removed in the reverse order of their indices
 /// to avoid invalidating the indices.
 fn perform_switch(
-        graph: &mut Graph<(), (), Directed>, 
-        idx: EdgeIndex,
-        jdx: EdgeIndex,
-        x1: NodeIndex, 
-        x2: NodeIndex, 
-        y1: NodeIndex, 
-        y2: NodeIndex) {
-        // Remove the two edges in the reverse order of their indices.
-        if idx < jdx {
-            graph.remove_edge(jdx);
-            graph.remove_edge(idx);
-        } else {
-            graph.remove_edge(idx);
-            graph.remove_edge(jdx);
-        }
+    graph: &mut Graph<(), (), Directed>,
+    idx: EdgeIndex,
+    jdx: EdgeIndex,
+    x1: NodeIndex,
+    x2: NodeIndex,
+    y1: NodeIndex,
+    y2: NodeIndex,
+) {
+    // Remove the two edges in the reverse order of their indices.
+    if idx < jdx {
+        graph.remove_edge(jdx);
+        graph.remove_edge(idx);
+    } else {
+        graph.remove_edge(idx);
+        graph.remove_edge(jdx);
+    }
 
-        // Add the two new edges.
-        graph.add_edge(x1, y2, ());
-        graph.add_edge(y1, x2, ());
+    // Add the two new edges.
+    graph.add_edge(x1, y2, ());
+    graph.add_edge(y1, x2, ());
 }

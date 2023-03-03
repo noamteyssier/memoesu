@@ -73,7 +73,12 @@ fn submodule_format(input: &str, prefix: &str, filter_loops: bool) -> Result<()>
     Ok(())
 }
 
-fn submodule_switch(filepath: &str, output: Option<String>, q: usize, seed: Option<u8>) -> Result<()> {
+fn submodule_switch(
+    filepath: &str,
+    output: Option<String>,
+    q: usize,
+    seed: Option<u8>,
+) -> Result<()> {
     // Load the graph.
     let graph = io::load_numeric_graph(filepath, false)?;
 

@@ -64,5 +64,5 @@ pub enum Mode {
         /// Seed for the random number generator
         #[arg(short, long)]
         seed: Option<u8>,
-    }
+    },
 }

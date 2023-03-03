@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use bitvec::{prelude::Msb0, view::BitView};
 use graph6_rs::write_graph6;
 use hashbrown::{HashMap, HashSet};
@@ -107,7 +107,7 @@ pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(
         if !include_loops && u == v {
             continue;
         } else {
-            edges.push((u-1, v-1));
+            edges.push((u - 1, v - 1));
         }
     }
     Ok(Graph::from_edges(&edges))
