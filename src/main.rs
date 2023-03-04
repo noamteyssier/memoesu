@@ -1,5 +1,6 @@
 mod cli;
 mod enumerate;
+mod enrichment;
 mod io;
 mod switching;
 
@@ -29,7 +30,7 @@ fn submodule_enumerate(
 
     // Enumerate the subgraphs.
     let now = std::time::Instant::now();
-    let canon_counts = if let Some(num_threads) = num_threads {
+    let results = if let Some(num_threads) = num_threads {
         // Build a thread pool and use it to enumerate the subgraphs.
         rayon::ThreadPoolBuilder::new()
             .num_threads(num_threads)
@@ -42,10 +43,13 @@ fn submodule_enumerate(
         enumerate_subgraphs(&graph, subgraph_size)
     };
 
+    eprintln!(">> Total subgraphs         : {}", results.num_subgraphs());
+    eprintln!(">> Unique subgraphs        : {}", results.num_unique_subgraphs());
+    eprintln!(">> Duplicate calculations  : {}", results.num_duplicates());
     eprintln!(">> Finished enumeration in : {:?}", now.elapsed());
-
+    
     // Write the results to the output file.
-    io::write_counts(&canon_counts, subgraph_size, output)?;
+    io::write_counts(&results.counts(), subgraph_size, output)?;
 
     Ok(())
 }
@@ -107,6 +111,23 @@ fn submodule_switch(
     Ok(())
 }
 
+fn submodule_enrichment(
+    filepath: &str,
+    subgraph_size: usize,
+    output: Option<String>,
+    num_threads: Option<usize>,
+    random_graphs: usize,
+    q: usize,
+    seed: Option<u8>,
+) -> Result<()> {
+
+    let graph = io::load_numeric_graph(filepath, false)?;
+    let canon_counts = enumerate_subgraphs(&graph, subgraph_size);
+    println!("{:?}" ,canon_counts);
+    Ok(())
+}
+
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.mode {
@@ -128,5 +149,14 @@ fn main() -> Result<()> {
             q,
             seed,
         } => submodule_switch(&input, output, q, seed),
+        cli::Mode::Enrich{
+            input,
+            output,
+            subgraph_size,
+            threads,
+            random_graphs,
+            q,
+            seed,
+        } => submodule_enrichment(&input, subgraph_size, output, threads, random_graphs, q, seed),
     }
 }
