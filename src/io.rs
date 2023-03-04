@@ -181,7 +181,7 @@ pub fn write_graph_to_buffer<W: Write>(
 ) -> Result<()> {
     for edge_idx in graph.edge_indices() {
         let (u, v) = graph.edge_endpoints(edge_idx).unwrap();
-        writeln!(buffer, "{}\t{}", u.index(), v.index())?;
+        writeln!(buffer, "{}\t{}", u.index() + 1, v.index() + 1)?;
     }
     Ok(())
 }
