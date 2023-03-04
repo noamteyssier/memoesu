@@ -58,7 +58,7 @@ pub enum Mode {
         output: Option<String>,
 
         /// Number of operations to perform (total = q * num_edges)
-        #[arg(short, long, default_value = "100")]
+        #[arg(short, long, default_value = "3")]
         q: usize,
 
         /// Seed for the random number generator
