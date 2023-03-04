@@ -47,6 +47,7 @@ fn submodule_enumerate(
     eprintln!(">> Unique subgraphs        : {}", results.num_unique_subgraphs());
     eprintln!(">> Duplicate calculations  : {}", results.num_duplicates());
     eprintln!(">> Finished enumeration in : {:?}", now.elapsed());
+    eprintln!("----------------------------------------");
     
     // Write the results to the output file.
     io::write_counts(&results.counts(), subgraph_size, output)?;
