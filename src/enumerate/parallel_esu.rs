@@ -1,4 +1,4 @@
-use super::{BitGraph, Walker};
+use super::{BitGraph, Walker, EnumResult};
 use petgraph::{EdgeType, Graph};
 use rayon::prelude::*;
 
@@ -8,7 +8,7 @@ type Memo = flurry::HashMap<Vec<u64>, Vec<u64>>;
 pub fn parallel_enumerate_subgraphs<N, E, Ty>(
     graph: &Graph<N, E, Ty>,
     k: usize,
-) -> hashbrown::HashMap<Vec<u64>, usize>
+) -> EnumResult
 where
     Ty: EdgeType,
 {
@@ -41,12 +41,7 @@ where
                 acc
             },
         );
-
-    eprintln!(">> Num subgraphs           : {num_subgraphs}");
-    eprintln!(">> Unique subgraphs        : {}", canon_counts.len());
-    eprintln!(">> Duplicate Subgraphs     : {num_dups}");
-
-    canon_counts
+    EnumResult::new(canon_counts, num_subgraphs, num_dups)
 }
 
 fn parallel_extend_subgraph(
