@@ -63,7 +63,7 @@ pub enum Mode {
 
         /// Seed for the random number generator
         #[arg(short = 'S', long)]
-        seed: Option<u8>,
+        seed: Option<usize>,
     },
 
     /// Performs enumeration on a graph and then performs a random
@@ -96,7 +96,7 @@ pub enum Mode {
 
         /// Seed for the random number generator
         #[arg(short = 'S', long)]
-        seed: Option<u8>,
+        seed: Option<usize>,
 
         /// Number of threads to use [default: 1]
         #[arg(short, long)]
