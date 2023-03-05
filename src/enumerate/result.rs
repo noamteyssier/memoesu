@@ -24,11 +24,11 @@ impl EnumResult {
         &self.canon_counts
     }
 
-    pub fn num_subgraphs(&self) -> usize {
+    pub fn total_subgraphs(&self) -> usize {
         self.num_subgraphs
     }
 
-    pub fn num_unique_subgraphs(&self) -> usize {
+    pub fn unique_subgraphs(&self) -> usize {
         self.canon_counts.len()
     }
 
