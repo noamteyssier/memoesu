@@ -8,6 +8,8 @@ use std::{
     io::{stdout, BufRead, BufReader, BufWriter, Write},
 };
 
+use crate::enrichment::EnrichResult;
+
 pub struct FormatGraph {
     graph: Graph<(), (), Directed>,
     node_dict: HashMap<String, u32>,
@@ -162,6 +164,41 @@ fn graph_to_flat_adj(graph: &[u64], n: usize) -> Vec<usize> {
         }
     }
     adj
+}
+
+pub fn write_stats(
+    results: &EnrichResult,
+    k: usize,
+    output: Option<String>,
+) -> Result<()> {
+    if let Some(output) = output {
+        let mut buffer = File::create(&output).map(BufWriter::new)?;
+        eprintln!(">> Writing results to      : {}", &output);
+        write_stats_to_buffer(&mut buffer, results, k)
+    } else {
+        let mut buffer = BufWriter::new(stdout().lock());
+        write_stats_to_buffer(&mut buffer, results, k)
+    }
+}
+
+fn write_stats_to_buffer<W: Write>(
+    buffer: &mut BufWriter<W>,
+    results: &EnrichResult,
+    k: usize,
+) -> Result<()> {
+    writeln!(buffer, "canon\tabundance\tmean\tstd\tzscore")?;
+    for idx in 0..results.len() {
+        let subgraph = &results.subgraphs[idx];
+        let adj = graph_to_flat_adj(subgraph, k);
+        let canon = write_graph6(adj, k, true);
+        // let frequency = &results.frequencies[idx];
+        let abundance = &results.abundances[idx];
+        let mean = &results.mean_random_frequency[idx];
+        let std = &results.std_random_frequency[idx];
+        let zscore = &results.zscores[idx];
+        writeln!(buffer, "{canon}\t{abundance}\t{mean}\t{std}\t{zscore}")?;
+    }
+    Ok(())
 }
 
 /// Write a graph to a file
