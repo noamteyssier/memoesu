@@ -7,6 +7,7 @@ mod switching;
 use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
+use enrichment::enrichment;
 use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs};
 use io::FormatGraph;
 
@@ -43,8 +44,8 @@ fn submodule_enumerate(
         enumerate_subgraphs(&graph, subgraph_size)
     };
 
-    eprintln!(">> Total subgraphs         : {}", results.num_subgraphs());
-    eprintln!(">> Unique subgraphs        : {}", results.num_unique_subgraphs());
+    eprintln!(">> Total subgraphs         : {}", results.total_subgraphs());
+    eprintln!(">> Unique subgraphs        : {}", results.unique_subgraphs());
     eprintln!(">> Duplicate calculations  : {}", results.num_duplicates());
     eprintln!(">> Finished enumeration in : {:?}", now.elapsed());
     eprintln!("----------------------------------------");
@@ -82,7 +83,7 @@ fn submodule_switch(
     filepath: &str,
     output: Option<String>,
     q: usize,
-    seed: Option<u8>,
+    seed: Option<usize>,
 ) -> Result<()> {
     // Load the graph.
     let graph = io::load_numeric_graph(filepath, false)?;
@@ -119,12 +120,14 @@ fn submodule_enrichment(
     num_threads: Option<usize>,
     random_graphs: usize,
     q: usize,
-    seed: Option<u8>,
+    seed: Option<usize>,
 ) -> Result<()> {
 
     let graph = io::load_numeric_graph(filepath, false)?;
-    let canon_counts = enumerate_subgraphs(&graph, subgraph_size);
-    println!("{:?}" ,canon_counts);
+    let results = enrichment(&graph, subgraph_size, random_graphs, q, seed);
+    io::write_stats(&results, subgraph_size, output)?;
+    // let canon_counts = enumerate_subgraphs(&graph, subgraph_size);
+    // println!("{:?}" ,canon_counts);
     Ok(())
 }
 
