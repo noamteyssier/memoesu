@@ -1,9 +1,12 @@
+use crate::{
+    enumerate::{enumerate_subgraphs, EnumResult},
+    switching::switching,
+};
 use hashbrown::HashMap;
 use ndarray::Array1;
-use petgraph::{Graph, Directed};
-use rand::{SeedableRng, Rng};
+use petgraph::{Directed, Graph};
+use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
-use crate::{enumerate::{enumerate_subgraphs, EnumResult}, switching::switching};
 
 pub struct EnrichResult {
     pub subgraphs: Vec<Vec<u64>>,
@@ -47,7 +50,7 @@ pub fn enrichment(
 }
 
 fn assemble_results(
-    original_results: &EnumResult, 
+    original_results: &EnumResult,
     null_map: HashMap<&Vec<u64>, Array1<f64>>,
 ) -> EnrichResult {
     let num_subgraphs = original_results.total_subgraphs();
@@ -61,7 +64,6 @@ fn assemble_results(
     let mut zscores = Vec::with_capacity(num_unique);
 
     for (key, abundance) in original_results.counts() {
-
         // Calculate the frequency of this subgraph in the original graph
         let frequency = *abundance as f64 / num_subgraphs as f64;
 
@@ -97,9 +99,9 @@ fn assemble_results(
 }
 
 fn initialize_null_map<'a>(
-    results: &'a EnumResult, 
+    results: &'a EnumResult,
 
-    num_random_graphs: usize
+    num_random_graphs: usize,
 ) -> HashMap<&'a Vec<u64>, Array1<f64>> {
     let mut null_map = HashMap::with_capacity(results.counts().len());
     for key in results.counts().keys() {

@@ -1,14 +1,11 @@
-use super::{BitGraph, Walker, EnumResult};
+use super::{BitGraph, EnumResult, Walker};
 use petgraph::{EdgeType, Graph};
 use rayon::prelude::*;
 
 type CanonCounts = hashbrown::HashMap<Vec<u64>, usize>;
 type Memo = flurry::HashMap<Vec<u64>, Vec<u64>>;
 
-pub fn parallel_enumerate_subgraphs<N, E, Ty>(
-    graph: &Graph<N, E, Ty>,
-    k: usize,
-) -> EnumResult
+pub fn parallel_enumerate_subgraphs<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize) -> EnumResult
 where
     Ty: EdgeType,
 {

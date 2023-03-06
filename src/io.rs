@@ -166,11 +166,7 @@ fn graph_to_flat_adj(graph: &[u64], n: usize) -> Vec<usize> {
     adj
 }
 
-pub fn write_stats(
-    results: &EnrichResult,
-    k: usize,
-    output: Option<String>,
-) -> Result<()> {
+pub fn write_stats(results: &EnrichResult, k: usize, output: Option<String>) -> Result<()> {
     if let Some(output) = output {
         let mut buffer = File::create(&output).map(BufWriter::new)?;
         eprintln!(">> Writing results to      : {}", &output);

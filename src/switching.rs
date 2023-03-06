@@ -49,7 +49,11 @@ impl NodeMap {
 /// * `graph` - The graph to create a random graph from.
 /// * `q` - The number of operations to perform (total = q * num_edges).
 /// * `seed` - The seed for the random number generator.
-pub fn switching(graph: &Graph<(), (), Directed>, q: usize, seed: usize) -> Graph<(), (), Directed> {
+pub fn switching(
+    graph: &Graph<(), (), Directed>,
+    q: usize,
+    seed: usize,
+) -> Graph<(), (), Directed> {
     let mut rgraph = graph.clone();
     let mut node_map = build_map(&rgraph);
     let mut rng = ChaChaRng::seed_from_u64(seed as u64);
@@ -172,14 +176,14 @@ mod testing {
     fn example_graph() -> Graph<(), (), Directed> {
         let edges = [
             (0, 1),
-            (1,	2),
-            (2,	0),
-            (3,	0),
-            (0,	4),
-            (5,	1),
-            (1,	6),
-            (7,	2),
-            (2,	8),
+            (1, 2),
+            (2, 0),
+            (3, 0),
+            (0, 4),
+            (5, 1),
+            (1, 6),
+            (7, 2),
+            (2, 8),
         ];
         Graph::from_edges(&edges)
     }

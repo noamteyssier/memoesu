@@ -1,6 +1,6 @@
 mod cli;
-mod enumerate;
 mod enrichment;
+mod enumerate;
 mod io;
 mod switching;
 
@@ -45,11 +45,14 @@ fn submodule_enumerate(
     };
 
     eprintln!(">> Total subgraphs         : {}", results.total_subgraphs());
-    eprintln!(">> Unique subgraphs        : {}", results.unique_subgraphs());
+    eprintln!(
+        ">> Unique subgraphs        : {}",
+        results.unique_subgraphs()
+    );
     eprintln!(">> Duplicate calculations  : {}", results.num_duplicates());
     eprintln!(">> Finished enumeration in : {:?}", now.elapsed());
     eprintln!("----------------------------------------");
-    
+
     // Write the results to the output file.
     io::write_counts(&results.counts(), subgraph_size, output)?;
 
@@ -122,7 +125,6 @@ fn submodule_enrichment(
     q: usize,
     seed: Option<usize>,
 ) -> Result<()> {
-
     let graph = io::load_numeric_graph(filepath, false)?;
     let results = enrichment(&graph, subgraph_size, random_graphs, q, seed);
     io::write_stats(&results, subgraph_size, output)?;
@@ -130,7 +132,6 @@ fn submodule_enrichment(
     // println!("{:?}" ,canon_counts);
     Ok(())
 }
-
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -153,7 +154,7 @@ fn main() -> Result<()> {
             q,
             seed,
         } => submodule_switch(&input, output, q, seed),
-        cli::Mode::Enrich{
+        cli::Mode::Enrich {
             input,
             output,
             subgraph_size,
@@ -161,6 +162,14 @@ fn main() -> Result<()> {
             random_graphs,
             q,
             seed,
-        } => submodule_enrichment(&input, subgraph_size, output, threads, random_graphs, q, seed),
+        } => submodule_enrichment(
+            &input,
+            subgraph_size,
+            output,
+            threads,
+            random_graphs,
+            q,
+            seed,
+        ),
     }
 }

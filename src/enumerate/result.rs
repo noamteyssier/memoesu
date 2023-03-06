@@ -9,10 +9,7 @@ pub struct EnumResult {
     num_duplicates: usize,
 }
 impl EnumResult {
-    pub fn new(
-        canon_counts: CanonCounts, 
-        num_subgraphs: usize, 
-        num_duplicates: usize) -> Self {
+    pub fn new(canon_counts: CanonCounts, num_subgraphs: usize, num_duplicates: usize) -> Self {
         Self {
             canon_counts,
             num_subgraphs,

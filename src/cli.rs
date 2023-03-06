@@ -72,7 +72,6 @@ pub enum Mode {
     /// The resulting random graphs are then used to perform enrichment
     /// analysis on the subgraphs.
     Enrich {
-
         /// File path to the input graph (white space separated edgelist)
         #[arg(short, long)]
         input: String,
@@ -101,5 +100,5 @@ pub enum Mode {
         /// Number of threads to use [default: 1]
         #[arg(short, long)]
         threads: Option<usize>,
-    }
+    },
 }
