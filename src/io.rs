@@ -30,12 +30,17 @@ impl FormatGraph {
 
     /// Reads a graph from a file path.
     pub fn from_filepath(filepath: &str, filter_loops: bool) -> Result<Self> {
-        let reader = File::open(filepath).map(BufReader::new)?;
+        let mut reader = File::open(filepath).map(BufReader::new)?;
+        Ok(Self::from_buffer(&mut reader, filter_loops))
+    }
+
+    /// Reads a graph from a buffer.
+    pub fn from_buffer<B: BufRead>(buffer: &mut B, filter_loops: bool) -> Self {
         let mut map = HashMap::new();
         let mut edges = HashSet::new();
         let mut num_filtered = 0;
 
-        for line in reader.lines() {
+        for line in buffer.lines() {
             let line = line.unwrap();
             let mut split = line.split_whitespace();
 
@@ -59,7 +64,7 @@ impl FormatGraph {
         }
 
         let graph = Graph::from_edges(&edges);
-        Ok(Self::new(graph, map, num_filtered))
+        Self::new(graph, map, num_filtered)
     }
 
     pub fn write_graph(&self, output: &str) -> Result<()> {
@@ -96,9 +101,16 @@ impl FormatGraph {
 ///
 /// Expects a 1-Indexed numeric white-space delimited edgelist.
 pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(), (), Directed>> {
-    let reader = File::open(filepath).map(BufReader::new)?;
+    let mut reader = File::open(filepath).map(BufReader::new)?;
+    load_numeric_graph_from_buffer(&mut reader, include_loops)
+}
+
+/// Load a graph from a buffer
+///
+/// Expects a 1-Indexed numeric white-space delimited edgelist.
+pub fn load_numeric_graph_from_buffer<B: BufRead>(buffer: &mut B, include_loops: bool) -> Result<Graph<(), (), Directed>> {
     let mut edges = Vec::new();
-    for line in reader.lines() {
+    for line in buffer.lines() {
         let line = line.unwrap();
         let mut split = line.split_whitespace();
         let u = split.next().unwrap().parse::<u32>()?;
@@ -113,6 +125,7 @@ pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(
         }
     }
     Ok(Graph::from_edges(&edges))
+
 }
 
 /// Write the counts of each subgraph to a file or stdout
@@ -187,7 +200,6 @@ fn write_stats_to_buffer<W: Write>(
         let subgraph = &results.subgraphs[idx];
         let adj = graph_to_flat_adj(subgraph, k);
         let canon = write_graph6(adj, k, true);
-        // let frequency = &results.frequencies[idx];
         let abundance = &results.abundances[idx];
         let mean = &results.mean_random_frequency[idx];
         let std = &results.std_random_frequency[idx];
@@ -217,4 +229,72 @@ pub fn write_graph_to_buffer<W: Write>(
         writeln!(buffer, "{}\t{}", u.index() + 1, v.index() + 1)?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod testing {
+    use std::io::Cursor;
+
+
+    #[test]
+    fn read_graph() {
+        let filepath = "example/example.txt";
+        let graph = super::load_numeric_graph(filepath, false).unwrap();
+        assert_eq!(graph.node_count(), 9);
+        assert_eq!(graph.edge_count(), 9);
+        assert!(graph.contains_edge(0.into(), 1.into()));
+        assert!(graph.contains_edge(1.into(), 2.into()));
+        assert!(graph.contains_edge(2.into(), 0.into()));
+        assert!(graph.contains_edge(3.into(), 0.into()));
+        assert!(graph.contains_edge(0.into(), 4.into()));
+        assert!(graph.contains_edge(5.into(), 1.into()));
+        assert!(graph.contains_edge(1.into(), 6.into()));
+        assert!(graph.contains_edge(7.into(), 2.into()));
+        assert!(graph.contains_edge(2.into(), 8.into()));
+    }
+
+    #[test]
+    fn read_zero_index() {
+        let internal = "0\t1\n1\t2\n2\t0\n";
+        let mut buffer = Cursor::new(internal);
+        let graph = super::load_numeric_graph_from_buffer(&mut buffer, false);
+        assert!(graph.is_err());
+    }
+
+    #[test]
+    fn read_one_index() {
+        let internal = "1\t2\n2\t3\n3\t1\n";
+        let mut buffer = Cursor::new(internal);
+        let graph = super::load_numeric_graph_from_buffer(&mut buffer, false);
+        assert!(graph.is_ok());
+    }
+
+    #[test]
+    fn read_with_loops() {
+        // 1 -> 2
+        // 2 -> 3
+        // 3 -> 1
+        // 1 -> 1
+        let internal = "1\t2\n2\t3\n3\t1\n1\t1";
+        let mut buffer = Cursor::new(internal);
+        let graph = super::load_numeric_graph_from_buffer(&mut buffer, true).unwrap();
+        assert_eq!(graph.node_count(), 3);
+        assert_eq!(graph.edge_count(), 4);
+        assert!(graph.contains_edge(0.into(), 0.into()));
+    }
+
+    #[test]
+    fn read_without_loops() {
+        // 1 -> 2
+        // 2 -> 3
+        // 3 -> 1
+        // 1 -> 1
+        let internal = "1\t2\n2\t3\n3\t1\n1\t1";
+        let mut buffer = Cursor::new(internal);
+        let graph = super::load_numeric_graph_from_buffer(&mut buffer, false).unwrap();
+        assert_eq!(graph.node_count(), 3);
+        assert_eq!(graph.edge_count(), 3);
+        assert!(!graph.contains_edge(0.into(), 0.into()));
+    }
+
 }
