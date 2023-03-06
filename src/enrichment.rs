@@ -46,7 +46,10 @@ pub fn enrichment(
     assemble_results(&original_results, null_map)
 }
 
-fn assemble_results(original_results: &EnumResult, null_map: HashMap<&Vec<u64>, Array1<f64>>) -> EnrichResult {
+fn assemble_results(
+    original_results: &EnumResult, 
+    null_map: HashMap<&Vec<u64>, Array1<f64>>,
+) -> EnrichResult {
     let num_subgraphs = original_results.total_subgraphs();
     let num_unique = original_results.unique_subgraphs();
 
