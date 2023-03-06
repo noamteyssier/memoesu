@@ -98,11 +98,11 @@ fn assemble_results(
     }
 }
 
-fn initialize_null_map<'a>(
-    results: &'a EnumResult,
+fn initialize_null_map(
+    results: &EnumResult,
 
     num_random_graphs: usize,
-) -> HashMap<&'a Vec<u64>, Array1<f64>> {
+) -> HashMap<&Vec<u64>, Array1<f64>> {
     let mut null_map = HashMap::with_capacity(results.counts().len());
     for key in results.counts().keys() {
         null_map.insert(key, Array1::zeros(num_random_graphs));
