@@ -135,6 +135,7 @@ fn sample_edges<R: Rng>(rng: &mut R, num_edges: usize) -> (EdgeIndex, EdgeIndex)
 /// This is done by removing two edges and adding two new edges.
 /// The two edges are removed in the reverse order of their indices
 /// to avoid invalidating the indices.
+#[allow(clippy::too_many_arguments)]
 fn perform_switch(
     graph: &mut Graph<(), (), Directed>,
     node_map: &mut NodeMap,
