@@ -1,4 +1,5 @@
 mod cli;
+mod enrichment;
 mod enumerate;
 mod io;
 mod switching;
@@ -6,6 +7,7 @@ mod switching;
 use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
+use enrichment::enrichment;
 use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs};
 use io::FormatGraph;
 
@@ -29,7 +31,7 @@ fn submodule_enumerate(
 
     // Enumerate the subgraphs.
     let now = std::time::Instant::now();
-    let canon_counts = if let Some(num_threads) = num_threads {
+    let results = if let Some(num_threads) = num_threads {
         // Build a thread pool and use it to enumerate the subgraphs.
         rayon::ThreadPoolBuilder::new()
             .num_threads(num_threads)
@@ -42,10 +44,17 @@ fn submodule_enumerate(
         enumerate_subgraphs(&graph, subgraph_size)
     };
 
+    eprintln!(">> Total subgraphs         : {}", results.total_subgraphs());
+    eprintln!(
+        ">> Unique subgraphs        : {}",
+        results.unique_subgraphs()
+    );
+    eprintln!(">> Duplicate calculations  : {}", results.num_duplicates());
     eprintln!(">> Finished enumeration in : {:?}", now.elapsed());
+    eprintln!("----------------------------------------");
 
     // Write the results to the output file.
-    io::write_counts(&canon_counts, subgraph_size, output)?;
+    io::write_counts(results.counts(), subgraph_size, output)?;
 
     Ok(())
 }
@@ -77,7 +86,7 @@ fn submodule_switch(
     filepath: &str,
     output: Option<String>,
     q: usize,
-    seed: Option<u8>,
+    seed: Option<usize>,
 ) -> Result<()> {
     // Load the graph.
     let graph = io::load_numeric_graph(filepath, false)?;
@@ -107,6 +116,23 @@ fn submodule_switch(
     Ok(())
 }
 
+fn submodule_enrichment(
+    filepath: &str,
+    subgraph_size: usize,
+    output: Option<String>,
+    _num_threads: Option<usize>,
+    random_graphs: usize,
+    q: usize,
+    seed: Option<usize>,
+) -> Result<()> {
+    let graph = io::load_numeric_graph(filepath, false)?;
+    let results = enrichment(&graph, subgraph_size, random_graphs, q, seed);
+    io::write_stats(&results, subgraph_size, output)?;
+    // let canon_counts = enumerate_subgraphs(&graph, subgraph_size);
+    // println!("{:?}" ,canon_counts);
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.mode {
@@ -128,5 +154,22 @@ fn main() -> Result<()> {
             q,
             seed,
         } => submodule_switch(&input, output, q, seed),
+        cli::Mode::Enrich {
+            input,
+            output,
+            subgraph_size,
+            threads,
+            random_graphs,
+            q,
+            seed,
+        } => submodule_enrichment(
+            &input,
+            subgraph_size,
+            output,
+            threads,
+            random_graphs,
+            q,
+            seed,
+        ),
     }
 }

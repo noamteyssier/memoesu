@@ -18,7 +18,7 @@ pub enum Mode {
         #[arg(short, long)]
         output: Option<String>,
 
-        /// Number of subgraphs to find in the input graph
+        /// Size of the subgraphs to find in the input graph
         #[arg(short, long)]
         subgraph_size: usize,
 
@@ -58,11 +58,47 @@ pub enum Mode {
         output: Option<String>,
 
         /// Number of operations to perform (total = q * num_edges)
-        #[arg(short, long, default_value = "100")]
+        #[arg(short, long, default_value = "3")]
         q: usize,
 
         /// Seed for the random number generator
+        #[arg(short = 'S', long)]
+        seed: Option<usize>,
+    },
+
+    /// Performs enumeration on a graph and then performs a random
+    /// switching on the graph to create random graphs that preserves
+    /// node degrees using the switch model. (Note that loops will be removed)
+    /// The resulting random graphs are then used to perform enrichment
+    /// analysis on the subgraphs.
+    Enrich {
+        /// File path to the input graph (white space separated edgelist)
         #[arg(short, long)]
-        seed: Option<u8>,
+        input: String,
+
+        /// Output file path to write results to (default: stdout)
+        #[arg(short, long)]
+        output: Option<String>,
+
+        /// Size of the subgraphs to find in the input graph
+        #[arg(short, long)]
+        subgraph_size: usize,
+
+        /// Number of random graphs to create
+        #[arg(short, long, default_value = "10")]
+        random_graphs: usize,
+
+        /// Number of edge switching operations to perform for each random graph
+        /// (total = q * num_edges)
+        #[arg(short, long, default_value = "3")]
+        q: usize,
+
+        /// Seed for the random number generator
+        #[arg(short = 'S', long)]
+        seed: Option<usize>,
+
+        /// Number of threads to use [default: 1]
+        #[arg(short, long)]
+        threads: Option<usize>,
     },
 }

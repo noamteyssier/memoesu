@@ -1,13 +1,10 @@
-use super::{BitGraph, Walker};
+use super::{BitGraph, EnumResult, Walker};
 use petgraph::{EdgeType, Graph};
 
 type CanonCounts = hashbrown::HashMap<Vec<u64>, usize>;
 type Memo = hashbrown::HashMap<Vec<u64>, Vec<u64>>;
 
-pub fn enumerate_subgraphs<N, E, Ty>(
-    graph: &Graph<N, E, Ty>,
-    k: usize,
-) -> hashbrown::HashMap<Vec<u64>, usize>
+pub fn enumerate_subgraphs<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize) -> EnumResult
 where
     Ty: EdgeType,
 {
@@ -26,12 +23,7 @@ where
             &mut walker,
         );
     });
-
-    eprintln!(">> Num subgraphs           : {num_subgraphs}");
-    eprintln!(">> Unique subgraphs        : {}", canon_counts.len());
-    eprintln!(">> Duplicate Subgraphs     : {num_dups}");
-
-    canon_counts
+    EnumResult::new(canon_counts, num_subgraphs, num_dups)
 }
 
 fn extend_subgraph(
