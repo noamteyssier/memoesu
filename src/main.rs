@@ -54,7 +54,7 @@ fn submodule_enumerate(
     eprintln!("----------------------------------------");
 
     // Write the results to the output file.
-    io::write_counts(&results.counts(), subgraph_size, output)?;
+    io::write_counts(results.counts(), subgraph_size, output)?;
 
     Ok(())
 }
@@ -120,7 +120,7 @@ fn submodule_enrichment(
     filepath: &str,
     subgraph_size: usize,
     output: Option<String>,
-    num_threads: Option<usize>,
+    _num_threads: Option<usize>,
     random_graphs: usize,
     q: usize,
     seed: Option<usize>,

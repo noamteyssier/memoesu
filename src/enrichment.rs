@@ -35,7 +35,7 @@ pub fn enrichment(
 
     for idx in 0..num_random_graphs {
         let random_seed = rng.gen();
-        let random_graph = switching(&graph, q, random_seed);
+        let random_graph = switching(graph, q, random_seed);
         let random_results = enumerate_subgraphs(&random_graph, k);
         for key in original_results.counts().keys() {
             if let Some(v) = random_results.counts().get(key) {
