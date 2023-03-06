@@ -128,8 +128,6 @@ fn submodule_enrichment(
     let graph = io::load_numeric_graph(filepath, false)?;
     let results = enrichment(&graph, subgraph_size, random_graphs, q, seed);
     io::write_stats(&results, subgraph_size, output)?;
-    // let canon_counts = enumerate_subgraphs(&graph, subgraph_size);
-    // println!("{:?}" ,canon_counts);
     Ok(())
 }
 
