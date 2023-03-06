@@ -56,3 +56,46 @@ fn extend_subgraph(
         }
     }
 }
+
+#[cfg(test)]
+mod testing {
+
+    use super::*;
+    use crate::io::load_numeric_graph;
+
+    #[test]
+    fn example_s3() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 3);
+        assert_eq!(result.total_subgraphs(), 16);
+        assert_eq!(result.unique_subgraphs(), 4);
+    }
+
+    #[test]
+    fn example_s4() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 4);
+        assert_eq!(result.total_subgraphs(), 24);
+        assert_eq!(result.unique_subgraphs(), 8);
+    }
+
+    #[test]
+    fn yeast_s3() {
+        let filepath = "example/yeast.txt";
+        let graph = load_numeric_graph(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 3);
+        assert_eq!(result.total_subgraphs(), 13150);
+        assert_eq!(result.unique_subgraphs(), 7);
+    }
+
+    #[test]
+    fn yeast_s4() {
+        let filepath = "example/yeast.txt";
+        let graph = load_numeric_graph(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 4);
+        assert_eq!(result.total_subgraphs(), 183174);
+        assert_eq!(result.unique_subgraphs(), 34);
+    }
+}
