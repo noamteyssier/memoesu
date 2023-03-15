@@ -39,9 +39,6 @@ impl Esu {
     pub fn build_nauty(&mut self) {
         for i in 0..self.motif_size {
             for j in 0..self.motif_size {
-                if i == j {
-                    continue;
-                }
                 if self.graph.is_connected_directed(self.current[i], self.current[j]) {
                     self.ngraph.add_arc(i, j);
                 }
