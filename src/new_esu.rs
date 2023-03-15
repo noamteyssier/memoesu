@@ -107,17 +107,15 @@ impl Esu {
                     continue;
                 }
                 
-                // If the neighbor is connected to any of the nodes in the current subgraph, break
-                let mut j = 0;
-                while j < size - 1 {
-                    if self.graph.is_connected(v, self.current[j]) {
-                        break;
-                    }
-                    j += 1;
-                }
+                // Iterate over the nodes in the current subgraph
+                // and if there are any neighbors, break
+                let exclusive = self.current
+                    .iter()
+                    .take(size - 1)
+                    .all(|&u| !self.graph.is_connected(v, u));
 
                 // If we are at the last node in the current subgraph, add the neighbor to the extension
-                if j == size - 1 {
+                if exclusive {
                     ext2[next2] = v;
                     next2 += 1;
                 }
