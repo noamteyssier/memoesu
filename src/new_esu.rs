@@ -1,21 +1,24 @@
-use hashbrown::HashMap;
+use ahash::HashMap;
 use crate::enumerate::{BitGraph, NautyGraph};
+
+type Counts = HashMap<Vec<u64>, usize>;
+type Memo = HashMap<Vec<u64>, Vec<u64>>;
 
 pub struct Esu {
     motif_size: usize,
     current: Vec<usize>,
     graph: BitGraph,
     ngraph: NautyGraph,
-    counts: HashMap<Vec<u64>, usize>,
-    memo: HashMap<Vec<u64>, Vec<u64>>,
+    counts: Counts,
+    memo: Memo,
     total: usize,
 }
 impl Esu {
     pub fn new(motif_size: usize, graph: BitGraph) -> Self {
         let current = vec![0; motif_size];
         let ngraph = NautyGraph::new_directed(motif_size);
-        let counts = HashMap::with_capacity(graph.n * motif_size);
-        let memo = HashMap::with_capacity(graph.n * motif_size);
+        let counts = Counts::default();
+        let memo = Memo::default();
         let total = 0;
         Self {
             motif_size,
