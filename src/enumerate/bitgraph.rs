@@ -1,4 +1,5 @@
 use fixedbitset::FixedBitSet;
+use ndarray::Array2;
 use petgraph::{graph::NodeIndex, EdgeType, Graph};
 
 /// A graph represented as a set of adjacency lists
@@ -10,8 +11,8 @@ pub struct BitGraph {
     /// Adjacency list for directed (outgoing) edges
     d_adj: Vec<FixedBitSet>,
 
-    /// Number of directed (outgoing) neighbors,
-    d_num: Vec<usize>,
+    /// Adjacency matrix
+    adj: Array2<bool>,
 
     /// Number of nodes in the graph
     pub n: usize,
@@ -24,19 +25,23 @@ impl BitGraph {
         let n = graph.node_count();
         let mut u_adj = Vec::with_capacity(n);
         let mut d_adj = Vec::with_capacity(n);
-        let mut d_num = Vec::with_capacity(n);
+        let mut adj = Array2::from_elem((n, n), false);
         for v in 0..n {
             let v_index = NodeIndex::new(v);
             let u_neighbors = undirected_neighbors(graph, v_index);
             let d_neighbors = directed_neighbors(graph, v_index);
+            
+            for n in d_neighbors.ones() {
+                adj[[v, n]] = true;
+            }
+
             u_adj.push(u_neighbors);
-            d_num.push(d_neighbors.count_ones(..));
             d_adj.push(d_neighbors);
         }
         Self {
             u_adj,
             d_adj,
-            d_num,
+            adj,
             n,
             is_directed: Ty::is_directed(),
         }
@@ -55,16 +60,12 @@ impl BitGraph {
         unsafe { self.d_adj.get_unchecked(v) }
     }
 
-    pub fn num_neighbors_directed(&self, v: usize) -> usize {
-        self.d_num[v]
-    }
-
     pub fn is_connected(&self, u: usize, v: usize) -> bool {
         self.u_adj[u].contains(v)
     }
 
     pub fn is_connected_directed(&self, u: usize, v: usize) -> bool {
-        self.d_adj[u].contains(v)
+        unsafe { *self.adj.uget((u, v)) }
     }
 }
 
