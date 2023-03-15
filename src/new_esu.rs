@@ -1,29 +1,48 @@
-use crate::enumerate::BitGraph;
-
+use hashbrown::HashMap;
+use crate::enumerate::{BitGraph, NautyGraph};
 
 pub struct Esu {
     motif_size: usize,
-    graph_size: usize,
-    next: usize,
     current: Vec<usize>,
     pub ext: Vec<usize>,
     graph: BitGraph,
+    ngraph: NautyGraph,
+    counts: HashMap<Vec<u64>, usize>,
+    memo: HashMap<Vec<u64>, Vec<u64>>,
 }
 impl Esu {
     pub fn new(motif_size: usize, graph: BitGraph) -> Self {
-        // let current = Vec::with_capacity(motif_size);
-        // let ext = Vec::with_capacity(graph.n);
         let current = vec![0; motif_size];
         let ext = vec![0; graph.n];
-        let next = 0;
+        let ngraph = NautyGraph::new_directed(motif_size);
+        let counts = HashMap::with_capacity(graph.n * motif_size);
+        let memo = HashMap::with_capacity(graph.n * motif_size);
         Self {
             motif_size,
-            graph_size: graph.n,
-            next,
             current,
             ext,
             graph,
+            ngraph,
+            counts,
+            memo,
         }
+    }
+
+    pub fn build_nauty(&mut self) {
+        for i in 0..self.motif_size {
+            for j in 0..self.motif_size {
+                if i == j {
+                    continue;
+                }
+                if self.graph.is_connected_directed(self.current[i], self.current[j]) {
+                    self.ngraph.add_arc(i, j);
+                }
+            }
+        }
+    }
+
+    pub fn run_nauty(&mut self) {
+        self.ngraph.run();
     }
 
     /// The main function for the enumeration.
@@ -38,15 +57,33 @@ impl Esu {
     /// * `ext` - The extension of the subgraph.
     pub fn go(&mut self, n: usize, size: usize, next: usize, ext: &Vec<usize>, total: &mut usize) {
 
-        // self.current.push(n);
         self.current[size] = n;
         let size = size + 1;
 
         if size == self.motif_size {
             *total += 1;
-            // println!("{:?}", self.current);
-            // self.current.remove(*size - 1);
-            // unimplemented!();
+            self.build_nauty();
+            let label = if let Some(label) = self.memo.get(self.ngraph.graph()) {
+                label
+            } else {
+                self.run_nauty();
+                let label = self.ngraph.canon();
+                self.memo.insert(self.ngraph.graph().to_vec(), label.to_vec());
+                self.ngraph.clear_canon();
+                self.memo.get(self.ngraph.graph()).unwrap()
+            };
+            // self.ngraph.clear_graph();
+
+            // self.run_nauty();
+            // let label = self.ngraph.canon();
+            // // println!("{:?} {:?} {:?}", self.current, self.ngraph.graph(), label);
+            if let Some(count) = self.counts.get_mut(label) {
+                *count += 1;
+            } else {
+                self.counts.insert(label.to_vec(), 1);
+            }
+            self.ngraph.clear_canon();
+            self.ngraph.clear_graph();
         } else {
             let mut next2 = next;
 
@@ -90,5 +127,9 @@ impl Esu {
                 self.go(ext2[next2], size, next2, &ext2, total);
             }
         }
+    }
+
+    pub fn counts(&self) -> &HashMap<Vec<u64>, usize> {
+        &self.counts
     }
 }
