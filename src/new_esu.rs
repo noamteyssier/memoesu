@@ -37,13 +37,13 @@ impl Esu {
     }
 
     pub fn build_nauty(&mut self) {
-        for i in 0..self.motif_size {
-            for j in 0..self.motif_size {
-                if self.graph.is_connected_directed(self.current[i], self.current[j]) {
+        self.current.iter().enumerate().for_each(|(i, &u)| {
+            self.current.iter().enumerate().for_each(|(j, &v)| {
+                if self.graph.is_connected_directed(u, v) {
                     self.ngraph.add_arc(i, j);
                 }
-            }
-        }
+            })
+        });
     }
 
     pub fn run_nauty(&mut self) {
