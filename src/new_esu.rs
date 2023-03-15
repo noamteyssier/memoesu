@@ -94,11 +94,7 @@ impl Esu {
             let mut next2 = next;
 
             // Copy the list of nodes in the extension.
-            // let mut ext2 = ext.clone();
-            let mut ext2 = vec![0; ext.len()];
-            for i in 0..next {
-                ext2[i] = ext[i];
-            }
+            let mut ext2 = ext.clone();
 
             // Get the neighbors of the last node in the current subgraph
             let neighbors = self.graph.neighbors(self.current[size - 1]).ones();
