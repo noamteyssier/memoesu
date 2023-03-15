@@ -131,6 +131,8 @@ impl<'a> Walker<'a> {
         self.neighborhood
             .union_with(&self.exclusive, self.depth, self.depth);
 
+        println!("{}", self.extension.get_row(self.depth).ones().count());
+
         // self.debug(true);
     }
 

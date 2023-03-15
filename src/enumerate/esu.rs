@@ -2,6 +2,7 @@ use super::{BitGraph, EnumResult, Walker};
 use petgraph::{EdgeType, Graph};
 
 type CanonCounts = hashbrown::HashMap<Vec<u64>, usize>;
+// type Memo = fxhash::FxHashMap<Vec<u64>, Vec<u64>>;
 type Memo = hashbrown::HashMap<Vec<u64>, Vec<u64>>;
 
 pub fn enumerate_subgraphs<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize) -> EnumResult

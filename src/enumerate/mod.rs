@@ -6,7 +6,7 @@ mod parallel_esu;
 mod result;
 mod walker;
 
-use bitgraph::BitGraph;
+pub use bitgraph::BitGraph;
 pub use esu::enumerate_subgraphs;
 use multibitset::MultiBitSet;
 use ngraph::NautyGraph;
