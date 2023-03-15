@@ -73,7 +73,7 @@ impl Esu {
                 self.run_nauty();
                 let label = self.ngraph.canon();
                 self.memo.insert(self.ngraph.graph().to_vec(), label.to_vec());
-                // self.ngraph.clear_canon();
+                self.ngraph.clear_canon();
                 self.memo.get(self.ngraph.graph()).unwrap()
             };
 
@@ -84,7 +84,6 @@ impl Esu {
                 self.counts.insert(label.to_vec(), 1);
             }
 
-            self.ngraph.clear_canon();
             self.ngraph.clear_graph();
         } else {
             let mut next2 = next;
