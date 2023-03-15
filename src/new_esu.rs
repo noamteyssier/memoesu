@@ -4,28 +4,33 @@ use crate::enumerate::{BitGraph, NautyGraph};
 pub struct Esu {
     motif_size: usize,
     current: Vec<usize>,
-    pub ext: Vec<usize>,
     graph: BitGraph,
     ngraph: NautyGraph,
     counts: HashMap<Vec<u64>, usize>,
     memo: HashMap<Vec<u64>, Vec<u64>>,
+    total: usize,
 }
 impl Esu {
     pub fn new(motif_size: usize, graph: BitGraph) -> Self {
         let current = vec![0; motif_size];
-        let ext = vec![0; graph.n];
         let ngraph = NautyGraph::new_directed(motif_size);
         let counts = HashMap::with_capacity(graph.n * motif_size);
         let memo = HashMap::with_capacity(graph.n * motif_size);
+        let total = 0;
         Self {
             motif_size,
             current,
-            ext,
             graph,
             ngraph,
             counts,
             memo,
+            total,
         }
+    }
+
+    pub fn enumerate(&mut self) {
+        let ext = vec![0; self.graph.n];
+        (0..self.graph.n).for_each(|i| self.go(i, 0, 0, &ext));
     }
 
     pub fn build_nauty(&mut self) {
@@ -55,13 +60,13 @@ impl Esu {
     /// * `size` - The current size of the subgraph.
     /// * `next` - The next node to be added to the subgraph.
     /// * `ext` - The extension of the subgraph.
-    pub fn go(&mut self, n: usize, size: usize, next: usize, ext: &Vec<usize>, total: &mut usize) {
+    pub fn go(&mut self, n: usize, size: usize, next: usize, ext: &Vec<usize>) {
 
         self.current[size] = n;
         let size = size + 1;
 
         if size == self.motif_size {
-            *total += 1;
+            self.total += 1;
             self.build_nauty();
 
             // Check if the subgraph is isomorphic to a subgraph that has already been enumerated.
@@ -125,12 +130,16 @@ impl Esu {
             // Recursively call the function for each node in the extension
             while next2 > 0 {
                 next2 -= 1;
-                self.go(ext2[next2], size, next2, &ext2, total);
+                self.go(ext2[next2], size, next2, &ext2);
             }
         }
     }
 
-    pub fn counts(&self) -> &HashMap<Vec<u64>, usize> {
-        &self.counts
+    pub fn n_total(&self) -> usize {
+        self.total
+    }
+
+    pub fn n_unique(&self) -> usize {
+        self.counts.len()
     }
 }
