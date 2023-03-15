@@ -2,6 +2,7 @@ mod cli;
 mod enrichment;
 mod enumerate;
 mod io;
+mod hash;
 mod new_esu;
 mod switching;
 
@@ -135,7 +136,7 @@ fn submodule_enrichment(
 
 fn main() {
     let graph = io::load_numeric_graph("example/yeast.txt", false).unwrap();
-    let k = 6;
+    let k = 5;
     let n = graph.node_count();
     let bitgraph = BitGraph::from_graph(&graph);
     let mut esu = Esu::new(k, bitgraph);
@@ -145,6 +146,7 @@ fn main() {
         esu.go(i, 0, 0, &ext, &mut total);
     }
     println!("Total: {}", total);
+    println!("Unique: {}", esu.counts().len());
 }
 
 // fn main() -> Result<()> {
