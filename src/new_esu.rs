@@ -63,25 +63,27 @@ impl Esu {
         if size == self.motif_size {
             *total += 1;
             self.build_nauty();
+
+            // Check if the subgraph is isomorphic to a subgraph that has already been enumerated.
             let label = if let Some(label) = self.memo.get(self.ngraph.graph()) {
                 label
+
+            // Otherwise run nauty to find the canonical label of the subgraph.
             } else {
                 self.run_nauty();
                 let label = self.ngraph.canon();
                 self.memo.insert(self.ngraph.graph().to_vec(), label.to_vec());
-                self.ngraph.clear_canon();
+                // self.ngraph.clear_canon();
                 self.memo.get(self.ngraph.graph()).unwrap()
             };
-            // self.ngraph.clear_graph();
 
-            // self.run_nauty();
-            // let label = self.ngraph.canon();
-            // // println!("{:?} {:?} {:?}", self.current, self.ngraph.graph(), label);
+            // Increment the count of the subgraph with the given label.
             if let Some(count) = self.counts.get_mut(label) {
                 *count += 1;
             } else {
                 self.counts.insert(label.to_vec(), 1);
             }
+
             self.ngraph.clear_canon();
             self.ngraph.clear_graph();
         } else {
