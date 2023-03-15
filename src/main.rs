@@ -136,16 +136,11 @@ fn submodule_enrichment(
 fn main() {
     let graph = io::load_numeric_graph("example/yeast.txt", false).unwrap();
     let k = 6;
-    let n = graph.node_count();
     let bitgraph = BitGraph::from_graph(&graph);
     let mut esu = Esu::new(k, bitgraph);
-    let ext = esu.ext.clone();
-    let mut total = 0;
-    for i in 0..n {
-        esu.go(i, 0, 0, &ext, &mut total);
-    }
-    println!("Total: {}", total);
-    println!("Unique: {}", esu.counts().len());
+    esu.enumerate();
+    println!("Total: {}", esu.n_total());
+    println!("Unique: {}", esu.n_unique());
 }
 
 // fn main() -> Result<()> {
