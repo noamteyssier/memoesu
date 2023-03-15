@@ -116,9 +116,7 @@ impl Esu {
 
                 // If we are at the last node in the current subgraph, add the neighbor to the extension
                 if exclusive {
-                    unsafe {
-                        *ext2.get_unchecked_mut(next2) = v;
-                    }
+                    ext2[next2] = v;
                     next2 += 1;
                 }
             }
