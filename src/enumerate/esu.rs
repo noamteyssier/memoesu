@@ -1,6 +1,6 @@
+use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
 use ahash::HashMap;
-use petgraph::{Graph, Directed};
-use crate::enumerate::{BitGraph, NautyGraph, EnumResult};
+use petgraph::{Directed, Graph};
 
 type Counts = HashMap<Vec<u64>, usize>;
 type Memo = HashMap<Vec<u64>, Vec<u64>>;
@@ -63,7 +63,6 @@ impl Esu {
     /// * `next` - The next node to be added to the subgraph.
     /// * `ext` - The extension of the subgraph.
     pub fn go(&mut self, n: usize, size: usize, next: usize, ext: &Vec<usize>) {
-
         self.current[size] = n;
         let size = size + 1;
 
@@ -79,7 +78,8 @@ impl Esu {
             } else {
                 self.run_nauty();
                 let label = self.ngraph.canon();
-                self.memo.insert(self.ngraph.graph().to_vec(), label.to_vec());
+                self.memo
+                    .insert(self.ngraph.graph().to_vec(), label.to_vec());
                 self.ngraph.clear_canon();
                 self.memo.get(self.ngraph.graph()).unwrap()
             };
@@ -103,15 +103,15 @@ impl Esu {
 
             // Iterate over the neighbors of the last node in the current subgraph
             for v in neighbors {
-
                 // If the neighbor is smaller than the first node in the current subgraph, skip it
                 if v <= self.current[0] {
                     continue;
                 }
-                
+
                 // Iterate over the nodes in the current subgraph
                 // and if there are any neighbors, break
-                let exclusive = self.current
+                let exclusive = self
+                    .current
                     .iter()
                     .take(size - 1)
                     .all(|&u| !self.graph.is_connected(v, u));

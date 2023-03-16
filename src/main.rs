@@ -8,8 +8,8 @@ use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
 use enrichment::enrichment;
-use io::FormatGraph;
 use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs};
+use io::FormatGraph;
 
 /// Enumerate the subgraphs of a given size in a graph.
 fn submodule_enumerate(
@@ -21,7 +21,7 @@ fn submodule_enumerate(
 ) -> Result<()> {
     // Load the graph.
     let graph = io::load_numeric_graph(filepath, include_loops)?;
-    
+
     eprintln!("----------------------------------------");
     eprintln!("Log");
     eprintln!("----------------------------------------");

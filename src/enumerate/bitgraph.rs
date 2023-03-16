@@ -30,7 +30,7 @@ impl BitGraph {
             let v_index = NodeIndex::new(v);
             let u_neighbors = undirected_neighbors(graph, v_index);
             let d_neighbors = directed_neighbors(graph, v_index);
-            
+
             for n in d_neighbors.ones() {
                 adj[[v, n]] = true;
             }

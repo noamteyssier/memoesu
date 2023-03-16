@@ -1,5 +1,5 @@
 use crate::{
-    enumerate::{EnumResult, enumerate_subgraphs},
+    enumerate::{enumerate_subgraphs, EnumResult},
     switching::switching,
 };
 use hashbrown::HashMap;

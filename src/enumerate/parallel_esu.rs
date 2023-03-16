@@ -1,6 +1,6 @@
-use petgraph::{Graph, Directed};
+use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
+use petgraph::{Directed, Graph};
 use rayon::prelude::*;
-use crate::enumerate::{BitGraph, NautyGraph, EnumResult};
 
 type Counts = ahash::HashMap<Vec<u64>, usize>;
 type Memo = flurry::HashMap<Vec<u64>, Vec<u64>>;
@@ -36,7 +36,16 @@ impl ParEsu {
                 let mut counts = Counts::default();
                 let mut current = vec![0; self.motif_size];
                 let mut total = 0;
-                self.go(i, 0, 0, &ext, &mut ngraph, &mut counts, &mut current, &mut total);
+                self.go(
+                    i,
+                    0,
+                    0,
+                    &ext,
+                    &mut ngraph,
+                    &mut counts,
+                    &mut current,
+                    &mut total,
+                );
                 (counts, total)
             })
             .reduce(
@@ -46,7 +55,8 @@ impl ParEsu {
                         *counts1.entry(k).or_insert(0) += v;
                     });
                     (counts1, total1 + total2)
-                });
+                },
+            );
         self.counts = counts;
         self.total = total;
     }
@@ -76,17 +86,16 @@ impl ParEsu {
     /// * `next` - The next node to be added to the subgraph.
     /// * `ext` - The extension of the subgraph.
     pub fn go(
-        &self, 
-        n: usize, 
-        size: usize, 
-        next: usize, 
-        ext: &Vec<usize>, 
-        ngraph: &mut NautyGraph, 
+        &self,
+        n: usize,
+        size: usize,
+        next: usize,
+        ext: &Vec<usize>,
+        ngraph: &mut NautyGraph,
         counts: &mut Counts,
         current: &mut Vec<usize>,
         total: &mut usize,
-        ) {
-
+    ) {
         current[size] = n;
         let size = size + 1;
 
@@ -106,7 +115,8 @@ impl ParEsu {
             } else {
                 self.run_nauty(ngraph);
                 let label = ngraph.canon();
-                self.memo.insert(ngraph.graph().to_vec(), label.to_vec(), &self.memo.guard());
+                self.memo
+                    .insert(ngraph.graph().to_vec(), label.to_vec(), &self.memo.guard());
                 counts.insert(label.to_vec(), 1);
             };
 
@@ -123,12 +133,11 @@ impl ParEsu {
 
             // Iterate over the neighbors of the last node in the current subgraph
             for v in neighbors {
-
                 // If the neighbor is smaller than the first node in the current subgraph, skip it
                 if v <= current[0] {
                     continue;
                 }
-                
+
                 // Iterate over the nodes in the current subgraph
                 // and if there are any neighbors, break
                 let exclusive = current
@@ -146,7 +155,16 @@ impl ParEsu {
             // Recursively call the function for each node in the extension
             while next2 > 0 {
                 next2 -= 1;
-                self.go(ext2[next2], size, next2, &ext2, ngraph, counts, current, total);
+                self.go(
+                    ext2[next2],
+                    size,
+                    next2,
+                    &ext2,
+                    ngraph,
+                    counts,
+                    current,
+                    total,
+                );
             }
         }
     }
@@ -156,7 +174,10 @@ impl ParEsu {
     }
 }
 
-pub fn parallel_enumerate_subgraphs(graph: &Graph<(), (), Directed>, motif_size: usize) -> EnumResult {
+pub fn parallel_enumerate_subgraphs(
+    graph: &Graph<(), (), Directed>,
+    motif_size: usize,
+) -> EnumResult {
     let mut esu = ParEsu::new(motif_size, graph);
     esu.enumerate();
     esu.result()
