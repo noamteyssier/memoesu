@@ -1,7 +1,6 @@
 use crate::{
-    enumerate::EnumResult,
+    enumerate::{EnumResult, enumerate_subgraphs},
     switching::switching,
-    new_esu::Esu,
 };
 use hashbrown::HashMap;
 use ndarray::Array1;
@@ -23,12 +22,6 @@ impl EnrichResult {
     }
 }
 
-fn enumerate(graph: &Graph<(), (), Directed>, k: usize) -> EnumResult {
-    let mut esu = Esu::new(k, graph);
-    esu.enumerate();
-    esu.result()
-}
-
 pub fn enrichment(
     graph: &Graph<(), (), Directed>,
     k: usize,
@@ -36,14 +29,14 @@ pub fn enrichment(
     q: usize,
     seed: Option<usize>,
 ) -> EnrichResult {
-    let original_results = enumerate(graph, k);
+    let original_results = enumerate_subgraphs(graph, k);
     let mut rng = ChaChaRng::seed_from_u64(seed.unwrap_or(rand::random()) as u64);
     let mut null_map = initialize_null_map(&original_results, num_random_graphs);
 
     for idx in 0..num_random_graphs {
         let random_seed = rng.gen();
         let random_graph = switching(graph, q, random_seed);
-        let random_results = enumerate(&random_graph, k);
+        let random_results = enumerate_subgraphs(&random_graph, k);
         for key in original_results.counts().keys() {
             if let Some(v) = random_results.counts().get(key) {
                 null_map.get_mut(key).unwrap()[idx] = *v as f64;
