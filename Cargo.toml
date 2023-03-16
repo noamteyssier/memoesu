@@ -14,13 +14,13 @@ petgraph-gen = "0.1.3"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 rayon = "1.6.1"
-fixedbitset = { path = "./libs/fixedbitset" }
 nauty-Traces-sys = "0.3.0"
 bitvec = "1.0.1"
 clap = { version = "4.1.8", features = ["derive"] }
 flurry = "0.4.0"
 ndarray = "0.15.6"
 ahash = "0.8.3"
+fixedbitset = "0.4.2"
 
 [profile.release-with-debug]
 inherits = "release"
