@@ -56,6 +56,7 @@ impl BitGraph {
         &self.d_adj[v]
     }
 
+    #[allow(dead_code)]
     pub fn neighbors_directed_unchecked(&self, v: usize) -> &FixedBitSet {
         unsafe { self.d_adj.get_unchecked(v) }
     }
