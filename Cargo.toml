@@ -1,6 +1,6 @@
 [package]
 name = "memoesu"
-version = "0.1.6"
+version = "0.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -20,7 +20,6 @@ bitvec = "1.0.1"
 clap = { version = "4.1.8", features = ["derive"] }
 flurry = "0.4.0"
 ndarray = "0.15.6"
-fxhash = "0.2.1"
 ahash = "0.8.3"
 
 [profile.release-with-debug]
