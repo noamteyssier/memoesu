@@ -10,11 +10,9 @@ use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
 use enrichment::enrichment;
-// use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs, BitGraph};
 use io::FormatGraph;
-use new_esu::Esu;
 
-use crate::new_par_esu::ParEsu;
+use crate::{new_par_esu::parallel_enumerate_subgraphs, new_esu::enumerate_subgraphs};
 
 /// Enumerate the subgraphs of a given size in a graph.
 fn submodule_enumerate(
@@ -43,14 +41,10 @@ fn submodule_enumerate(
             .build_global()?;
 
         // Run the enumeration in parallel.
-        let mut esu = ParEsu::new(subgraph_size, &graph);
-        esu.enumerate();
-        esu.result()
+        parallel_enumerate_subgraphs(&graph, subgraph_size)
     } else {
         // Run the enumeration in serial.
-        let mut esu = Esu::new(subgraph_size, &graph);
-        esu.enumerate();
-        esu.result()
+        enumerate_subgraphs(&graph, subgraph_size)
     };
 
     eprintln!(">> Total subgraphs         : {}", results.total_subgraphs());
