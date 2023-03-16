@@ -131,17 +131,6 @@ fn submodule_enrichment(
     Ok(())
 }
 
-// fn main() {
-//     let graph = io::load_numeric_graph("example/yeast.txt", false).unwrap();
-//     let k = 6;
-//     let bitgraph = BitGraph::from_graph(&graph);
-//     // let mut esu = Esu::new(k, bitgraph);
-//     let mut esu = ParEsu::new(k, bitgraph);
-//     esu.enumerate();
-//     println!("Total: {}", esu.n_total());
-//     println!("Unique: {}", esu.n_unique());
-// }
-
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.mode {
