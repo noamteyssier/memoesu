@@ -2,8 +2,6 @@ mod cli;
 mod enrichment;
 mod enumerate;
 mod io;
-mod new_esu;
-mod new_par_esu;
 mod switching;
 
 use anyhow::Result;
@@ -11,8 +9,7 @@ use clap::Parser;
 use cli::Cli;
 use enrichment::enrichment;
 use io::FormatGraph;
-
-use crate::{new_par_esu::parallel_enumerate_subgraphs, new_esu::enumerate_subgraphs};
+use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs};
 
 /// Enumerate the subgraphs of a given size in a graph.
 fn submodule_enumerate(
