@@ -1,75 +1,165 @@
-use super::{BitGraph, EnumResult, Walker};
-use petgraph::{EdgeType, Graph};
+use petgraph::{Graph, Directed};
 use rayon::prelude::*;
+use crate::enumerate::{BitGraph, NautyGraph, EnumResult};
 
-type CanonCounts = hashbrown::HashMap<Vec<u64>, usize>;
+type Counts = ahash::HashMap<Vec<u64>, usize>;
 type Memo = flurry::HashMap<Vec<u64>, Vec<u64>>;
 
-pub fn parallel_enumerate_subgraphs<N, E, Ty>(graph: &Graph<N, E, Ty>, k: usize) -> EnumResult
-where
-    Ty: EdgeType,
-{
-    let bitgraph = BitGraph::from_graph(graph);
-    let memo = Memo::with_capacity(bitgraph.n * k);
-    let (canon_counts, num_subgraphs, num_dups) = (0..bitgraph.n)
-        .par_bridge()
-        .map(|v| {
-            let mut walker = Walker::new(&bitgraph, v, k);
-            let mut canon_counts = CanonCounts::with_capacity(walker.bitgraph.n * walker.k);
-            let mut num_subgraphs = 0;
-            let mut num_dups = 0;
-            parallel_extend_subgraph(
-                &mut canon_counts,
-                &memo,
-                &mut num_subgraphs,
-                &mut num_dups,
-                &mut walker,
-            );
-            (canon_counts, num_subgraphs, num_dups)
-        })
-        .reduce(
-            || (CanonCounts::with_capacity(bitgraph.n * k), 0, 0),
-            |mut acc, x| {
-                for (k, v) in x.0 {
-                    *acc.0.entry(k).or_insert(0) += v;
-                }
-                acc.1 += x.1;
-                acc.2 += x.2;
-                acc
-            },
-        );
-    EnumResult::new(canon_counts, num_subgraphs, num_dups)
+pub struct ParEsu {
+    motif_size: usize,
+    graph: BitGraph,
+    counts: Counts,
+    memo: Memo,
+    total: usize,
 }
-
-fn parallel_extend_subgraph(
-    canon_counts: &mut CanonCounts,
-    memo: &Memo,
-    num_subgraphs: &mut usize,
-    num_dups: &mut usize,
-    walker: &mut Walker,
-) {
-    while !walker.is_finished() {
-        if walker.is_descending() {
-            if walker.has_extension() {
-                walker.descend();
-            } else {
-                walker.ascend();
-            }
-        } else {
-            walker.fill_nauty();
-            if let Some(label) = memo.get(walker.nauty_graph(), &memo.guard()) {
-                *canon_counts.entry(label.clone()).or_insert(0) += 1;
-                *num_dups += 1;
-            } else {
-                let label = walker.run_nauty();
-                memo.insert(walker.nauty_graph().to_vec(), label.clone(), &memo.guard());
-                *canon_counts.entry(label.clone()).or_insert(0) += 1;
-            }
-            *num_subgraphs += 1;
-            walker.clear_nauty();
-            walker.ascend();
+impl ParEsu {
+    pub fn new(motif_size: usize, petgraph: &Graph<(), (), Directed>) -> Self {
+        let graph = BitGraph::from_graph(petgraph);
+        let counts = Counts::default();
+        let memo = Memo::default();
+        let total = 0;
+        Self {
+            motif_size,
+            graph,
+            counts,
+            memo,
+            total,
         }
     }
+
+    pub fn enumerate(&mut self) {
+        let ext = vec![0; self.graph.n];
+        let (counts, total) = (0..self.graph.n)
+            .par_bridge()
+            .map(|i| {
+                let mut ngraph = NautyGraph::new_directed(self.motif_size);
+                let mut counts = Counts::default();
+                let mut current = vec![0; self.motif_size];
+                let mut total = 0;
+                self.go(i, 0, 0, &ext, &mut ngraph, &mut counts, &mut current, &mut total);
+                (counts, total)
+            })
+            .reduce(
+                || (Counts::default(), 0),
+                |(mut counts1, total1), (counts2, total2)| {
+                    counts2.into_iter().for_each(|(k, v)| {
+                        *counts1.entry(k).or_insert(0) += v;
+                    });
+                    (counts1, total1 + total2)
+                });
+        self.counts = counts;
+        self.total = total;
+    }
+
+    pub fn build_nauty(&self, current: &[usize], ngraph: &mut NautyGraph) {
+        current.iter().enumerate().for_each(|(i, &u)| {
+            current.iter().enumerate().for_each(|(j, &v)| {
+                if self.graph.is_connected_directed(u, v) {
+                    ngraph.add_arc(i, j);
+                }
+            })
+        });
+    }
+
+    pub fn run_nauty(&self, ngraph: &mut NautyGraph) {
+        ngraph.run();
+    }
+
+    /// The main function for the enumeration.
+    ///
+    /// This function is called recursively to enumerate all subgraphs of the
+    /// given size.
+    ///
+    /// # Arguments
+    /// * `n` - The current node.
+    /// * `size` - The current size of the subgraph.
+    /// * `next` - The next node to be added to the subgraph.
+    /// * `ext` - The extension of the subgraph.
+    pub fn go(
+        &self, 
+        n: usize, 
+        size: usize, 
+        next: usize, 
+        ext: &Vec<usize>, 
+        ngraph: &mut NautyGraph, 
+        counts: &mut Counts,
+        current: &mut Vec<usize>,
+        total: &mut usize,
+        ) {
+
+        current[size] = n;
+        let size = size + 1;
+
+        if size == self.motif_size {
+            *total += 1;
+            self.build_nauty(current, ngraph);
+
+            // Check if the subgraph is isomorphic to a subgraph that has already been enumerated.
+            if let Some(label) = self.memo.get(ngraph.graph(), &self.memo.guard()) {
+                if let Some(count) = counts.get_mut(label) {
+                    *count += 1;
+                } else {
+                    counts.insert(label.to_vec(), 1);
+                }
+
+            // Otherwise run nauty to find the canonical label of the subgraph.
+            } else {
+                self.run_nauty(ngraph);
+                let label = ngraph.canon();
+                self.memo.insert(ngraph.graph().to_vec(), label.to_vec(), &self.memo.guard());
+                counts.insert(label.to_vec(), 1);
+            };
+
+            ngraph.clear_canon();
+            ngraph.clear_graph();
+        } else {
+            let mut next2 = next;
+
+            // Copy the list of nodes in the extension.
+            let mut ext2 = ext.clone();
+
+            // Get the neighbors of the last node in the current subgraph
+            let neighbors = self.graph.neighbors(current[size - 1]).ones();
+
+            // Iterate over the neighbors of the last node in the current subgraph
+            for v in neighbors {
+
+                // If the neighbor is smaller than the first node in the current subgraph, skip it
+                if v <= current[0] {
+                    continue;
+                }
+                
+                // Iterate over the nodes in the current subgraph
+                // and if there are any neighbors, break
+                let exclusive = current
+                    .iter()
+                    .take(size - 1)
+                    .all(|&u| !self.graph.is_connected(v, u));
+
+                // If we are at the last node in the current subgraph, add the neighbor to the extension
+                if exclusive {
+                    ext2[next2] = v;
+                    next2 += 1;
+                }
+            }
+
+            // Recursively call the function for each node in the extension
+            while next2 > 0 {
+                next2 -= 1;
+                self.go(ext2[next2], size, next2, &ext2, ngraph, counts, current, total);
+            }
+        }
+    }
+
+    pub fn result(self) -> EnumResult {
+        EnumResult::new(self.counts, self.total)
+    }
+}
+
+pub fn parallel_enumerate_subgraphs(graph: &Graph<(), (), Directed>, motif_size: usize) -> EnumResult {
+    let mut esu = ParEsu::new(motif_size, graph);
+    esu.enumerate();
+    esu.result()
 }
 
 #[cfg(test)]
@@ -114,4 +204,3 @@ mod testing {
         assert_eq!(result.unique_subgraphs(), 34);
     }
 }
-
