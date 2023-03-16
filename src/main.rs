@@ -49,7 +49,7 @@ fn submodule_enumerate(
         ">> Unique subgraphs        : {}",
         results.unique_subgraphs()
     );
-    eprintln!(">> Duplicate calculations  : {}", results.num_duplicates());
+    // eprintln!(">> Duplicate calculations  : {}", results.num_duplicates());
     eprintln!(">> Finished enumeration in : {:?}", now.elapsed());
     eprintln!("----------------------------------------");
 

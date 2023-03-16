@@ -108,7 +108,10 @@ pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(
 /// Load a graph from a buffer
 ///
 /// Expects a 1-Indexed numeric white-space delimited edgelist.
-pub fn load_numeric_graph_from_buffer<B: BufRead>(buffer: &mut B, include_loops: bool) -> Result<Graph<(), (), Directed>> {
+pub fn load_numeric_graph_from_buffer<B: BufRead>(
+    buffer: &mut B,
+    include_loops: bool,
+) -> Result<Graph<(), (), Directed>> {
     let mut edges = Vec::new();
     for line in buffer.lines() {
         let line = line.unwrap();
@@ -125,12 +128,11 @@ pub fn load_numeric_graph_from_buffer<B: BufRead>(buffer: &mut B, include_loops:
         }
     }
     Ok(Graph::from_edges(&edges))
-
 }
 
 /// Write the counts of each subgraph to a file or stdout
 pub fn write_counts(
-    canon_counts: &HashMap<Vec<u64>, usize>,
+    canon_counts: &ahash::HashMap<Vec<u64>, usize>,
     k: usize,
     output: Option<String>,
 ) -> Result<()> {
@@ -147,7 +149,7 @@ pub fn write_counts(
 /// Write the counts of each subgraph to a buffer
 fn write_counts_to_buffer<W: Write>(
     buffer: &mut BufWriter<W>,
-    canon_counts: &HashMap<Vec<u64>, usize>,
+    canon_counts: &ahash::HashMap<Vec<u64>, usize>,
     k: usize,
 ) -> Result<()> {
     // Sort by count
@@ -235,7 +237,6 @@ pub fn write_graph_to_buffer<W: Write>(
 mod testing {
     use std::io::Cursor;
 
-
     #[test]
     fn read_graph() {
         let filepath = "example/example.txt";
@@ -296,5 +297,4 @@ mod testing {
         assert_eq!(graph.edge_count(), 3);
         assert!(!graph.contains_edge(0.into(), 0.into()));
     }
-
 }

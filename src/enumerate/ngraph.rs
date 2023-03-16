@@ -47,6 +47,8 @@ impl NautyGraph {
             nodes: Nodes::new(n),
         }
     }
+
+    #[allow(dead_code)]
     pub fn new_undirected(n: usize) -> Self {
         let m = SETWORDSNEEDED(n);
         let graph = empty_graph(m, n);
@@ -101,6 +103,7 @@ impl NautyGraph {
         &self.graph
     }
 
+    #[allow(dead_code)]
     pub fn pprint_graph(&self) -> Vec<u8> {
         let mut bit_vector = Vec::with_capacity(self.n * self.n);
         for num in &self.graph {
