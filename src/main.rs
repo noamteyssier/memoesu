@@ -3,15 +3,18 @@ mod enrichment;
 mod enumerate;
 mod io;
 mod new_esu;
+mod new_par_esu;
 mod switching;
 
 use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
 use enrichment::enrichment;
-use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs, BitGraph};
+// use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs, BitGraph};
 use io::FormatGraph;
 use new_esu::Esu;
+
+use crate::new_par_esu::ParEsu;
 
 /// Enumerate the subgraphs of a given size in a graph.
 fn submodule_enumerate(
@@ -23,7 +26,7 @@ fn submodule_enumerate(
 ) -> Result<()> {
     // Load the graph.
     let graph = io::load_numeric_graph(filepath, include_loops)?;
-
+    
     eprintln!("----------------------------------------");
     eprintln!("Log");
     eprintln!("----------------------------------------");
@@ -40,10 +43,14 @@ fn submodule_enumerate(
             .build_global()?;
 
         // Run the enumeration in parallel.
-        parallel_enumerate_subgraphs(&graph, subgraph_size)
+        let mut esu = ParEsu::new(subgraph_size, &graph);
+        esu.enumerate();
+        esu.result()
     } else {
         // Run the enumeration in serial.
-        enumerate_subgraphs(&graph, subgraph_size)
+        let mut esu = Esu::new(subgraph_size, &graph);
+        esu.enumerate();
+        esu.result()
     };
 
     eprintln!(">> Total subgraphs         : {}", results.total_subgraphs());
@@ -51,7 +58,7 @@ fn submodule_enumerate(
         ">> Unique subgraphs        : {}",
         results.unique_subgraphs()
     );
-    eprintln!(">> Duplicate calculations  : {}", results.num_duplicates());
+    // eprintln!(">> Duplicate calculations  : {}", results.num_duplicates());
     eprintln!(">> Finished enumeration in : {:?}", now.elapsed());
     eprintln!("----------------------------------------");
 
@@ -133,53 +140,54 @@ fn submodule_enrichment(
     Ok(())
 }
 
-fn main() {
-    let graph = io::load_numeric_graph("example/yeast.txt", false).unwrap();
-    let k = 6;
-    let bitgraph = BitGraph::from_graph(&graph);
-    let mut esu = Esu::new(k, bitgraph);
-    esu.enumerate();
-    println!("Total: {}", esu.n_total());
-    println!("Unique: {}", esu.n_unique());
-}
-
-// fn main() -> Result<()> {
-//     let cli = Cli::parse();
-//     match cli.mode {
-//         cli::Mode::Enumerate {
-//             input,
-//             output,
-//             subgraph_size,
-//             threads,
-//             include_loops,
-//         } => submodule_enumerate(&input, subgraph_size, output, threads, include_loops),
-//         cli::Mode::Format {
-//             input,
-//             output,
-//             filter_loops,
-//         } => submodule_format(&input, &output, filter_loops),
-//         cli::Mode::Switch {
-//             input,
-//             output,
-//             q,
-//             seed,
-//         } => submodule_switch(&input, output, q, seed),
-//         cli::Mode::Enrich {
-//             input,
-//             output,
-//             subgraph_size,
-//             threads,
-//             random_graphs,
-//             q,
-//             seed,
-//         } => submodule_enrichment(
-//             &input,
-//             subgraph_size,
-//             output,
-//             threads,
-//             random_graphs,
-//             q,
-//             seed,
-//         ),
-//     }
+// fn main() {
+//     let graph = io::load_numeric_graph("example/yeast.txt", false).unwrap();
+//     let k = 6;
+//     let bitgraph = BitGraph::from_graph(&graph);
+//     // let mut esu = Esu::new(k, bitgraph);
+//     let mut esu = ParEsu::new(k, bitgraph);
+//     esu.enumerate();
+//     println!("Total: {}", esu.n_total());
+//     println!("Unique: {}", esu.n_unique());
 // }
+
+fn main() -> Result<()> {
+    let cli = Cli::parse();
+    match cli.mode {
+        cli::Mode::Enumerate {
+            input,
+            output,
+            subgraph_size,
+            threads,
+            include_loops,
+        } => submodule_enumerate(&input, subgraph_size, output, threads, include_loops),
+        cli::Mode::Format {
+            input,
+            output,
+            filter_loops,
+        } => submodule_format(&input, &output, filter_loops),
+        cli::Mode::Switch {
+            input,
+            output,
+            q,
+            seed,
+        } => submodule_switch(&input, output, q, seed),
+        cli::Mode::Enrich {
+            input,
+            output,
+            subgraph_size,
+            threads,
+            random_graphs,
+            q,
+            seed,
+        } => submodule_enrichment(
+            &input,
+            subgraph_size,
+            output,
+            threads,
+            random_graphs,
+            q,
+            seed,
+        ),
+    }
+}

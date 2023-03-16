@@ -130,7 +130,7 @@ pub fn load_numeric_graph_from_buffer<B: BufRead>(buffer: &mut B, include_loops:
 
 /// Write the counts of each subgraph to a file or stdout
 pub fn write_counts(
-    canon_counts: &HashMap<Vec<u64>, usize>,
+    canon_counts: &ahash::HashMap<Vec<u64>, usize>,
     k: usize,
     output: Option<String>,
 ) -> Result<()> {
@@ -147,7 +147,7 @@ pub fn write_counts(
 /// Write the counts of each subgraph to a buffer
 fn write_counts_to_buffer<W: Write>(
     buffer: &mut BufWriter<W>,
-    canon_counts: &HashMap<Vec<u64>, usize>,
+    canon_counts: &ahash::HashMap<Vec<u64>, usize>,
     k: usize,
 ) -> Result<()> {
     // Sort by count

@@ -1,5 +1,6 @@
 use ahash::HashMap;
-use crate::enumerate::{BitGraph, NautyGraph};
+use petgraph::{Graph, Directed};
+use crate::enumerate::{BitGraph, NautyGraph, EnumResult};
 
 type Counts = HashMap<Vec<u64>, usize>;
 type Memo = HashMap<Vec<u64>, Vec<u64>>;
@@ -14,7 +15,8 @@ pub struct Esu {
     total: usize,
 }
 impl Esu {
-    pub fn new(motif_size: usize, graph: BitGraph) -> Self {
+    pub fn new(motif_size: usize, petgraph: &Graph<(), (), Directed>) -> Self {
+        let graph = BitGraph::from_graph(petgraph);
         let current = vec![0; motif_size];
         let ngraph = NautyGraph::new_directed(motif_size);
         let counts = Counts::default();
@@ -129,11 +131,7 @@ impl Esu {
         }
     }
 
-    pub fn n_total(&self) -> usize {
-        self.total
-    }
-
-    pub fn n_unique(&self) -> usize {
-        self.counts.len()
+    pub fn result(self) -> EnumResult {
+        EnumResult::new(self.counts, self.total)
     }
 }
