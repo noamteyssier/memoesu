@@ -117,7 +117,12 @@ impl ParEsu {
                 let label = ngraph.canon();
                 self.memo
                     .insert(ngraph.graph().to_vec(), label.to_vec(), &self.memo.guard());
-                counts.insert(label.to_vec(), 1);
+
+                if let Some(count) = counts.get_mut(label) {
+                    *count += 1;
+                } else {
+                    counts.insert(label.to_vec(), 1);
+                }
             };
 
             ngraph.clear_canon();
@@ -196,6 +201,15 @@ mod testing {
         let result = parallel_enumerate_subgraphs(&graph, 3);
         assert_eq!(result.total_subgraphs(), 16);
         assert_eq!(result.unique_subgraphs(), 4);
+
+        // &BP_    1
+        // &BC_    3
+        // &B?o    3
+        // &BCO    9
+        result.counts().values().for_each(|&count| {
+            let cond = count == 1 || count == 3 || count == 9;
+            assert!(cond);
+        });
     }
 
     #[test]
@@ -205,6 +219,19 @@ mod testing {
         let result = parallel_enumerate_subgraphs(&graph, 4);
         assert_eq!(result.total_subgraphs(), 24);
         assert_eq!(result.unique_subgraphs(), 8);
+
+        // &C?g_   3
+        // &COg_   3
+        // &C?gO   3
+        // &C?`o   3
+        // &C?gG   3
+        // &C?@o   3
+        // &C?Cg   3
+        // &C?Go   3
+        result.counts().values().for_each(|&count| {
+            let cond = count == 3;
+            assert!(cond);
+        });
     }
 
     #[test]
@@ -214,6 +241,23 @@ mod testing {
         let result = parallel_enumerate_subgraphs(&graph, 3);
         assert_eq!(result.total_subgraphs(), 13150);
         assert_eq!(result.unique_subgraphs(), 7);
+
+        // &BPo    1
+        // &BSo    1
+        // &B@o    18
+        // &BCo    70
+        // &BCO    293
+        // &BC_    889
+        // &B?o    11878
+        result.counts().values().for_each(|&count| {
+            let cond = count == 1
+                || count == 18
+                || count == 70
+                || count == 293
+                || count == 889
+                || count == 11878;
+            assert!(cond);
+        });
     }
 
     #[test]
@@ -223,5 +267,68 @@ mod testing {
         let result = parallel_enumerate_subgraphs(&graph, 4);
         assert_eq!(result.total_subgraphs(), 183174);
         assert_eq!(result.unique_subgraphs(), 34);
+
+        // &CAKw   1
+        // &C?do   1
+        // &C?`w   1
+        // &COkw   1
+        // &C?kW   1
+        // &C?[w   1
+        // &CAKg   1
+        // &CAGw   3
+        // &CAGW   4
+        // &CAKo   6
+        // &C?cw   9
+        // &C?go   10
+        // &CA@o   11
+        // &C?hW   16
+        // &C?Wo   16
+        // &CACw   17
+        // &C?kw   17
+        // &CACo   17
+        // &C?HW   32
+        // &CACW   55
+        // &C?gO   92
+        // &CAGo   102
+        // &C?@w   121
+        // &C?gG   125
+        // &C?Kw   157
+        // &C?Kg   286
+        // &C?g_   400
+        // &CAG_   989
+        // &C?Gw   1125
+        // &C?@o   1460
+        // &C?Ko   1843
+        // &C?Cg   4498
+        // &C?Go   22995
+        // &C??w   148761
+        result.counts().values().for_each(|&c| {
+            let cond = c == 1
+                || c == 3
+                || c == 4
+                || c == 6
+                || c == 9
+                || c == 10
+                || c == 11
+                || c == 16
+                || c == 17
+                || c == 32
+                || c == 55
+                || c == 92
+                || c == 102
+                || c == 121
+                || c == 125
+                || c == 157
+                || c == 286
+                || c == 400
+                || c == 989
+                || c == 1125
+                || c == 1460
+                || c == 1843
+                || c == 4498
+                || c == 22995
+                || c == 148761;
+            assert!(cond);
+        })
     }
 }
