@@ -207,9 +207,7 @@ mod testing {
         // &B?o    3
         // &BCO    9
         result.counts().values().for_each(|&count| {
-            let cond = count == 1 
-                || count == 3 
-                || count == 9;
+            let cond = count == 1 || count == 3 || count == 9;
             assert!(cond);
         });
     }
@@ -252,11 +250,11 @@ mod testing {
         // &BC_    889
         // &B?o    11878
         result.counts().values().for_each(|&count| {
-            let cond = count == 1 
-                || count == 18 
-                || count == 70 
-                || count == 293 
-                || count == 889 
+            let cond = count == 1
+                || count == 18
+                || count == 70
+                || count == 293
+                || count == 889
                 || count == 11878;
             assert!(cond);
         });
@@ -305,30 +303,30 @@ mod testing {
         // &C?Go   22995
         // &C??w   148761
         result.counts().values().for_each(|&c| {
-            let cond = c == 1 
-                || c == 3 
-                || c == 4 
-                || c == 6 
-                || c == 9 
-                || c == 10 
-                || c == 11 
-                || c == 16 
-                || c == 17 
-                || c == 32 
-                || c == 55 
-                || c == 92 
-                || c == 102 
-                || c == 121 
-                || c == 125 
-                || c == 157 
-                || c == 286 
-                || c == 400 
-                || c == 989 
-                || c == 1125 
-                || c == 1460 
-                || c == 1843 
-                || c == 4498 
-                || c == 22995 
+            let cond = c == 1
+                || c == 3
+                || c == 4
+                || c == 6
+                || c == 9
+                || c == 10
+                || c == 11
+                || c == 16
+                || c == 17
+                || c == 32
+                || c == 55
+                || c == 92
+                || c == 102
+                || c == 121
+                || c == 125
+                || c == 157
+                || c == 286
+                || c == 400
+                || c == 989
+                || c == 1125
+                || c == 1460
+                || c == 1843
+                || c == 4498
+                || c == 22995
                 || c == 148761;
             assert!(cond);
         })
