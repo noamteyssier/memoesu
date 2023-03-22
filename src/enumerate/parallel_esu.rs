@@ -117,7 +117,12 @@ impl ParEsu {
                 let label = ngraph.canon();
                 self.memo
                     .insert(ngraph.graph().to_vec(), label.to_vec(), &self.memo.guard());
-                counts.insert(label.to_vec(), 1);
+
+                if let Some(count) = counts.get_mut(label) {
+                    *count += 1;
+                } else {
+                    counts.insert(label.to_vec(), 1);
+                }
             };
 
             ngraph.clear_canon();
