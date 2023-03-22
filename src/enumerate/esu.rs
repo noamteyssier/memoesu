@@ -155,6 +155,17 @@ mod testing {
         let result = enumerate_subgraphs(&graph, 3);
         assert_eq!(result.total_subgraphs(), 16);
         assert_eq!(result.unique_subgraphs(), 4);
+
+        // &BP_    1
+        // &BC_    3
+        // &B?o    3
+        // &BCO    9
+        result.counts().values().for_each(|&count| {
+            let cond = count == 1 
+                || count == 3 
+                || count == 9;
+            assert!(cond);
+        });
     }
 
     #[test]
@@ -164,6 +175,19 @@ mod testing {
         let result = enumerate_subgraphs(&graph, 4);
         assert_eq!(result.total_subgraphs(), 24);
         assert_eq!(result.unique_subgraphs(), 8);
+
+        // &C?g_   3
+        // &COg_   3
+        // &C?gO   3
+        // &C?`o   3
+        // &C?gG   3
+        // &C?@o   3
+        // &C?Cg   3
+        // &C?Go   3
+        result.counts().values().for_each(|&count| {
+            let cond = count == 3;
+            assert!(cond);
+        });
     }
 
     #[test]
