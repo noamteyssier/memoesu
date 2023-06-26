@@ -290,8 +290,7 @@ mod testing {
         // CF      6
         // CR      12
         result.counts().values().for_each(|&count| {
-            let cond = count == 6
-                || count == 12;
+            let cond = count == 6 || count == 12;
             assert!(cond);
         });
     }
@@ -309,13 +308,9 @@ mod testing {
         // &B?o    168
         // &BCO    250
         result.counts().values().for_each(|&count| {
-            let cond = count == 126
-                || count == 130
-                || count == 168
-                || count == 250;
+            let cond = count == 126 || count == 130 || count == 168 || count == 250;
             assert!(cond);
         });
-
     }
 
     #[test]
@@ -329,8 +324,7 @@ mod testing {
         // Bw      130
         // BW      544
         result.counts().values().for_each(|&count| {
-            let cond = count == 130
-                || count == 544;
+            let cond = count == 130 || count == 544;
             assert!(cond);
         });
     }
@@ -392,7 +386,6 @@ mod testing {
                 || count == 436;
             assert!(cond);
         });
-
     }
 
     #[test]
@@ -457,8 +450,7 @@ mod testing {
         // Bw      72
         // BW      13078
         result.counts().values().for_each(|&count| {
-            let cond = count == 72
-                || count == 13078;
+            let cond = count == 72 || count == 13078;
             assert!(cond);
         });
     }
@@ -550,14 +542,8 @@ mod testing {
         // CR      28033
         // CF      151456
         result.counts().values().for_each(|&c| {
-            let cond = c == 2
-                || c == 202
-                || c == 1624
-                || c == 1857
-                || c == 28033
-                || c == 151456;
+            let cond = c == 2 || c == 202 || c == 1624 || c == 1857 || c == 28033 || c == 151456;
             assert!(cond);
         })
     }
-
 }
