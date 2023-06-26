@@ -2,7 +2,7 @@ use anyhow::{bail, Result};
 use bitvec::{prelude::Msb0, view::BitView};
 use graph6_rs::write_graph6;
 use hashbrown::{HashMap, HashSet};
-use petgraph::{Directed, Graph};
+use petgraph::{Directed, EdgeType, Graph};
 use std::{
     fs::File,
     io::{stdout, BufRead, BufReader, BufWriter, Write},
@@ -100,7 +100,10 @@ impl FormatGraph {
 /// Load a graph from a file
 ///
 /// Expects a 1-Indexed numeric white-space delimited edgelist.
-pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(), (), Directed>> {
+pub fn load_numeric_graph<Ty: EdgeType>(
+    filepath: &str,
+    include_loops: bool,
+) -> Result<Graph<(), (), Ty>> {
     let mut reader = File::open(filepath).map(BufReader::new)?;
     load_numeric_graph_from_buffer(&mut reader, include_loops)
 }
@@ -108,10 +111,10 @@ pub fn load_numeric_graph(filepath: &str, include_loops: bool) -> Result<Graph<(
 /// Load a graph from a buffer
 ///
 /// Expects a 1-Indexed numeric white-space delimited edgelist.
-pub fn load_numeric_graph_from_buffer<B: BufRead>(
+pub fn load_numeric_graph_from_buffer<B: BufRead, Ty: EdgeType>(
     buffer: &mut B,
     include_loops: bool,
-) -> Result<Graph<(), (), Directed>> {
+) -> Result<Graph<(), (), Ty>> {
     let mut edges = Vec::new();
     for line in buffer.lines() {
         let line = line.unwrap();
@@ -135,14 +138,15 @@ pub fn write_counts(
     canon_counts: &ahash::HashMap<Vec<u64>, usize>,
     k: usize,
     output: Option<String>,
+    is_directed: bool,
 ) -> Result<()> {
     if let Some(output) = output {
         let mut buffer = File::create(&output).map(BufWriter::new)?;
         eprintln!(">> Writing results to      : {}", &output);
-        write_counts_to_buffer(&mut buffer, canon_counts, k)
+        write_counts_to_buffer(&mut buffer, canon_counts, k, is_directed)
     } else {
         let mut buffer = BufWriter::new(stdout().lock());
-        write_counts_to_buffer(&mut buffer, canon_counts, k)
+        write_counts_to_buffer(&mut buffer, canon_counts, k, is_directed)
     }
 }
 
@@ -151,6 +155,7 @@ fn write_counts_to_buffer<W: Write>(
     buffer: &mut BufWriter<W>,
     canon_counts: &ahash::HashMap<Vec<u64>, usize>,
     k: usize,
+    is_directed: bool,
 ) -> Result<()> {
     // Sort by count
     let mut sorted_counts: Vec<(&Vec<u64>, &usize)> = canon_counts.iter().collect();
@@ -159,7 +164,7 @@ fn write_counts_to_buffer<W: Write>(
     // Write to buffer
     for (label, count) in sorted_counts {
         let adj = graph_to_flat_adj(label, k);
-        let canon = write_graph6(adj, k, true);
+        let canon = write_graph6(adj, k, is_directed);
         writeln!(buffer, "{canon}\t{count}")?;
     }
     Ok(())
@@ -235,12 +240,15 @@ pub fn write_graph_to_buffer<W: Write>(
 
 #[cfg(test)]
 mod testing {
+    use petgraph::Undirected;
+
+    use super::*;
     use std::io::Cursor;
 
     #[test]
-    fn read_graph() {
+    fn read_graph_directed() {
         let filepath = "example/example.txt";
-        let graph = super::load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         assert_eq!(graph.node_count(), 9);
         assert_eq!(graph.edge_count(), 9);
         assert!(graph.contains_edge(0.into(), 1.into()));
@@ -255,10 +263,36 @@ mod testing {
     }
 
     #[test]
+    fn read_graph_undirected() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        assert_eq!(graph.node_count(), 9);
+        assert_eq!(graph.edge_count(), 9);
+        assert!(graph.contains_edge(0.into(), 1.into()));
+        assert!(graph.contains_edge(1.into(), 0.into()));
+        assert!(graph.contains_edge(1.into(), 2.into()));
+        assert!(graph.contains_edge(2.into(), 1.into()));
+        assert!(graph.contains_edge(2.into(), 0.into()));
+        assert!(graph.contains_edge(0.into(), 2.into()));
+        assert!(graph.contains_edge(3.into(), 0.into()));
+        assert!(graph.contains_edge(0.into(), 3.into()));
+        assert!(graph.contains_edge(0.into(), 4.into()));
+        assert!(graph.contains_edge(4.into(), 0.into()));
+        assert!(graph.contains_edge(5.into(), 1.into()));
+        assert!(graph.contains_edge(1.into(), 5.into()));
+        assert!(graph.contains_edge(1.into(), 6.into()));
+        assert!(graph.contains_edge(6.into(), 1.into()));
+        assert!(graph.contains_edge(7.into(), 2.into()));
+        assert!(graph.contains_edge(2.into(), 7.into()));
+        assert!(graph.contains_edge(2.into(), 8.into()));
+        assert!(graph.contains_edge(8.into(), 2.into()));
+    }
+
+    #[test]
     fn read_zero_index() {
         let internal = "0\t1\n1\t2\n2\t0\n";
         let mut buffer = Cursor::new(internal);
-        let graph = super::load_numeric_graph_from_buffer(&mut buffer, false);
+        let graph = load_numeric_graph_from_buffer::<Cursor<&str>, Directed>(&mut buffer, false);
         assert!(graph.is_err());
     }
 
@@ -266,7 +300,7 @@ mod testing {
     fn read_one_index() {
         let internal = "1\t2\n2\t3\n3\t1\n";
         let mut buffer = Cursor::new(internal);
-        let graph = super::load_numeric_graph_from_buffer(&mut buffer, false);
+        let graph = load_numeric_graph_from_buffer::<Cursor<&str>, Directed>(&mut buffer, false);
         assert!(graph.is_ok());
     }
 
@@ -278,7 +312,8 @@ mod testing {
         // 1 -> 1
         let internal = "1\t2\n2\t3\n3\t1\n1\t1";
         let mut buffer = Cursor::new(internal);
-        let graph = super::load_numeric_graph_from_buffer(&mut buffer, true).unwrap();
+        let graph =
+            load_numeric_graph_from_buffer::<Cursor<&str>, Directed>(&mut buffer, true).unwrap();
         assert_eq!(graph.node_count(), 3);
         assert_eq!(graph.edge_count(), 4);
         assert!(graph.contains_edge(0.into(), 0.into()));
@@ -292,7 +327,8 @@ mod testing {
         // 1 -> 1
         let internal = "1\t2\n2\t3\n3\t1\n1\t1";
         let mut buffer = Cursor::new(internal);
-        let graph = super::load_numeric_graph_from_buffer(&mut buffer, false).unwrap();
+        let graph =
+            load_numeric_graph_from_buffer::<Cursor<&str>, Directed>(&mut buffer, false).unwrap();
         assert_eq!(graph.node_count(), 3);
         assert_eq!(graph.edge_count(), 3);
         assert!(!graph.contains_edge(0.into(), 0.into()));

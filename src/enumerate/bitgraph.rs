@@ -62,7 +62,7 @@ impl BitGraph {
     }
 
     pub fn is_connected(&self, u: usize, v: usize) -> bool {
-        self.u_adj[u].contains(v)
+        unsafe { *self.adj.uget((u, v)) || *self.adj.uget((v, u)) }
     }
 
     pub fn is_connected_directed(&self, u: usize, v: usize) -> bool {

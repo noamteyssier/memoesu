@@ -30,11 +30,15 @@ pub struct NautyGraph {
     pub stats: statsblk,
 }
 impl NautyGraph {
-    pub fn new_directed(n: usize) -> Self {
+    pub fn new(n: usize, dir: bool) -> Self {
         let m = SETWORDSNEEDED(n);
         let graph = empty_graph(m, n);
         let canon = empty_graph(m, n);
-        let opts = opts_default_dir();
+        let opts = if dir {
+            opts_default_dir()
+        } else {
+            opts_default_undir()
+        };
         let stats = statsblk::default();
         Self {
             graph,
@@ -49,23 +53,15 @@ impl NautyGraph {
     }
 
     #[allow(dead_code)]
-    pub fn new_undirected(n: usize) -> Self {
-        let m = SETWORDSNEEDED(n);
-        let graph = empty_graph(m, n);
-        let canon = empty_graph(m, n);
-        let opts = opts_default_undir();
-        let stats = statsblk::default();
-        Self {
-            graph,
-            canon,
-            n,
-            m,
-            opts,
-            stats,
-            e: 0,
-            nodes: Nodes::new(n),
-        }
+    pub fn new_directed(n: usize) -> Self {
+        Self::new(n, true)
     }
+
+    #[allow(dead_code)]
+    pub fn new_undirected(n: usize) -> Self {
+        Self::new(n, false)
+    }
+
     pub fn add_arc(&mut self, u: usize, v: usize) {
         ADDONEARC(&mut self.graph, u, v, self.m);
         self.e += 1;

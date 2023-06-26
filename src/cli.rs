@@ -29,6 +29,10 @@ pub enum Mode {
         /// Include edges with loops (i.e. a node connects to itself) [default: false]
         #[arg(short = 'l', long)]
         include_loops: bool,
+
+        /// Assume undirected graph (i.e. edges are bidirectional) [default: false]
+        #[arg(short, long)]
+        undirected: bool,
     },
 
     /// Formats an input graph into a usable format for `memoesu`

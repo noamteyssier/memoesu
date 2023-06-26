@@ -1,11 +1,13 @@
+use std::marker::PhantomData;
+
 use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
 use ahash::HashMap;
-use petgraph::{Directed, Graph};
+use petgraph::{EdgeType, Graph};
 
 type Counts = HashMap<Vec<u64>, usize>;
 type Memo = HashMap<Vec<u64>, Vec<u64>>;
 
-pub struct Esu {
+pub struct Esu<Ty: EdgeType> {
     motif_size: usize,
     current: Vec<usize>,
     graph: BitGraph,
@@ -13,15 +15,20 @@ pub struct Esu {
     counts: Counts,
     memo: Memo,
     total: usize,
+    is_directed: bool,
+    phantom: PhantomData<Ty>,
 }
-impl Esu {
-    pub fn new(motif_size: usize, petgraph: &Graph<(), (), Directed>) -> Self {
+
+impl<Ty: EdgeType> Esu<Ty> {
+    pub fn new(motif_size: usize, petgraph: &Graph<(), (), Ty>) -> Self {
+        let is_directed = petgraph.is_directed();
         let graph = BitGraph::from_graph(petgraph);
         let current = vec![0; motif_size];
-        let ngraph = NautyGraph::new_directed(motif_size);
+        let ngraph = NautyGraph::new(motif_size, is_directed);
         let counts = Counts::default();
         let memo = Memo::default();
         let total = 0;
+        let phantom = PhantomData;
         Self {
             motif_size,
             current,
@@ -30,6 +37,8 @@ impl Esu {
             counts,
             memo,
             total,
+            is_directed,
+            phantom,
         }
     }
 
@@ -39,12 +48,35 @@ impl Esu {
     }
 
     pub fn build_nauty(&mut self) {
+        if self.is_directed {
+            self.build_nauty_dir();
+        } else {
+            self.build_nauty_undir();
+        }
+    }
+
+    pub fn build_nauty_dir(&mut self) {
         self.current.iter().enumerate().for_each(|(i, &u)| {
             self.current.iter().enumerate().for_each(|(j, &v)| {
                 if self.graph.is_connected_directed(u, v) {
                     self.ngraph.add_arc(i, j);
                 }
             })
+        });
+    }
+
+    pub fn build_nauty_undir(&mut self) {
+        self.current.iter().enumerate().for_each(|(i, &u)| {
+            self.current
+                .iter()
+                .enumerate()
+                .skip(i + 1)
+                .for_each(|(j, &v)| {
+                    if self.graph.is_connected(u, v) {
+                        self.ngraph.add_arc(i, j);
+                        self.ngraph.add_arc(j, i);
+                    }
+                })
         });
     }
 
@@ -136,7 +168,10 @@ impl Esu {
     }
 }
 
-pub fn enumerate_subgraphs(petgraph: &Graph<(), (), Directed>, motif_size: usize) -> EnumResult {
+pub fn enumerate_subgraphs<Ty: EdgeType>(
+    petgraph: &Graph<(), (), Ty>,
+    motif_size: usize,
+) -> EnumResult {
     let mut esu = Esu::new(motif_size, petgraph);
     esu.enumerate();
     esu.result()
@@ -147,11 +182,12 @@ mod testing {
 
     use super::*;
     use crate::io::load_numeric_graph;
+    use petgraph::{Directed, Undirected};
 
     #[test]
-    fn example_s3() {
+    fn dir_example_s3() {
         let filepath = "example/example.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = enumerate_subgraphs(&graph, 3);
         assert_eq!(result.total_subgraphs(), 16);
         assert_eq!(result.unique_subgraphs(), 4);
@@ -167,9 +203,25 @@ mod testing {
     }
 
     #[test]
-    fn example_s4() {
+    fn undir_example_s3() {
         let filepath = "example/example.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 3);
+        assert_eq!(result.total_subgraphs(), 16);
+        assert_eq!(result.unique_subgraphs(), 2);
+
+        // Bw      1
+        // BW      15
+        result.counts().values().for_each(|&count| {
+            let cond = count == 1 || count == 15;
+            assert!(cond);
+        });
+    }
+
+    #[test]
+    fn dir_example_s4() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = enumerate_subgraphs(&graph, 4);
         assert_eq!(result.total_subgraphs(), 24);
         assert_eq!(result.unique_subgraphs(), 8);
@@ -189,9 +241,144 @@ mod testing {
     }
 
     #[test]
-    fn yeast_s3() {
+    fn undir_example_s4() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 4);
+        assert_eq!(result.total_subgraphs(), 24);
+        assert_eq!(result.unique_subgraphs(), 3);
+
+        // CN      6
+        // CF      6
+        // CR      12
+        result.counts().values().for_each(|&count| {
+            let cond = count == 6 || count == 12;
+            assert!(cond);
+        });
+    }
+
+    #[test]
+    fn dir_ecoli_s3() {
+        let filepath = "example/ecoli.txt";
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 3);
+        assert_eq!(result.total_subgraphs(), 674);
+        assert_eq!(result.unique_subgraphs(), 4);
+
+        // &BC_    126
+        // &BCo    130
+        // &B?o    168
+        // &BCO    250
+        result.counts().values().for_each(|&count| {
+            let cond = count == 126 || count == 130 || count == 168 || count == 250;
+            assert!(cond);
+        });
+    }
+
+    #[test]
+    fn undir_ecoli_s3() {
+        let filepath = "example/ecoli.txt";
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 3);
+        assert_eq!(result.total_subgraphs(), 674);
+        assert_eq!(result.unique_subgraphs(), 2);
+
+        // Bw      130
+        // BW      544
+        result.counts().values().for_each(|&count| {
+            let cond = count == 130 || count == 544;
+            assert!(cond);
+        });
+    }
+
+    #[test]
+    fn dir_ecoli_s4() {
+        let filepath = "example/ecoli.txt";
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 4);
+        assert_eq!(result.total_subgraphs(), 2531);
+        assert_eq!(result.unique_subgraphs(), 24);
+
+        // &C?Ko   4
+        // &CAGW   8
+        // &CAKo   11
+        // &C?go   17
+        // &CAGw   20
+        // &CAKW   28
+        // &CAKg   28
+        // &C?Kw   28
+        // &CACw   35
+        // &CAG_   36
+        // &CAKw   38
+        // &CACo   56
+        // &C??w   65
+        // &C?gG   80
+        // &CA@o   87
+        // &C?@o   113
+        // &C?Gw   114
+        // &CACW   120
+        // &CAGo   125
+        // &C?Kg   159
+        // &C?g_   279
+        // &C?gO   284
+        // &C?Cg   360
+        // &C?Go   436
+        result.counts().values().for_each(|&count| {
+            let cond = count == 4
+                || count == 8
+                || count == 11
+                || count == 17
+                || count == 20
+                || count == 28
+                || count == 35
+                || count == 36
+                || count == 38
+                || count == 56
+                || count == 65
+                || count == 80
+                || count == 87
+                || count == 113
+                || count == 114
+                || count == 120
+                || count == 125
+                || count == 159
+                || count == 279
+                || count == 284
+                || count == 360
+                || count == 436;
+            assert!(cond);
+        });
+    }
+
+    #[test]
+    fn undir_ecoli_s4() {
+        let filepath = "example/ecoli.txt";
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 4);
+        assert_eq!(result.total_subgraphs(), 2531);
+        assert_eq!(result.unique_subgraphs(), 6);
+
+        // Cr      29
+        // C~      38
+        // C^      150
+        // CF      294
+        // CN      661
+        // CR      1359
+        result.counts().values().for_each(|&count| {
+            let cond = count == 29
+                || count == 38
+                || count == 150
+                || count == 294
+                || count == 661
+                || count == 1359;
+            assert!(cond);
+        });
+    }
+
+    #[test]
+    fn dir_yeast_s3() {
         let filepath = "example/yeast.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = enumerate_subgraphs(&graph, 3);
         assert_eq!(result.total_subgraphs(), 13150);
         assert_eq!(result.unique_subgraphs(), 7);
@@ -215,9 +402,25 @@ mod testing {
     }
 
     #[test]
-    fn yeast_s4() {
+    fn undir_yeast_s3() {
         let filepath = "example/yeast.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 3);
+        assert_eq!(result.total_subgraphs(), 13150);
+        assert_eq!(result.unique_subgraphs(), 2);
+
+        // Bw      72
+        // BW      13078
+        result.counts().values().for_each(|&count| {
+            let cond = count == 72 || count == 13078;
+            assert!(cond);
+        });
+    }
+
+    #[test]
+    fn dir_yeast_s4() {
+        let filepath = "example/yeast.txt";
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = enumerate_subgraphs(&graph, 4);
         assert_eq!(result.total_subgraphs(), 183174);
         assert_eq!(result.unique_subgraphs(), 34);
@@ -282,6 +485,26 @@ mod testing {
                 || c == 4498
                 || c == 22995
                 || c == 148761;
+            assert!(cond);
+        })
+    }
+
+    #[test]
+    fn undir_yeast_s4() {
+        let filepath = "example/yeast.txt";
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        let result = enumerate_subgraphs(&graph, 4);
+        assert_eq!(result.total_subgraphs(), 183174);
+        assert_eq!(result.unique_subgraphs(), 6);
+
+        // C~      2
+        // C^      202
+        // CN      1624
+        // Cr      1857
+        // CR      28033
+        // CF      151456
+        result.counts().values().for_each(|&c| {
+            let cond = c == 2 || c == 202 || c == 1624 || c == 1857 || c == 28033 || c == 151456;
             assert!(cond);
         })
     }
