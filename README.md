@@ -24,6 +24,24 @@ the bitvector representing the adjacency matrix of the subgraph.
 It also allows the user to run the ESU algorithm in parallel across multiple
 threads to speed up the enumeration.
 
+## Installation
+
+### Using Cargo
+
+This can be installed using `cargo` the rust package manager:
+
+```bash
+cargo install memoesu
+```
+
+### Installing Cargo
+
+You can install the rust package manager `cargo` with the following command:
+
+```bash
+curl https://sh.rustup.rs -sSf | sh
+```
+
 ## Usage
 
 ### Enumeration
