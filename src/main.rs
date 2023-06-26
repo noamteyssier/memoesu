@@ -10,17 +10,19 @@ use cli::Cli;
 use enrichment::enrichment;
 use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs};
 use io::FormatGraph;
+use petgraph::{Undirected, Directed, EdgeType};
 
 /// Enumerate the subgraphs of a given size in a graph.
-fn submodule_enumerate(
+fn submodule_enumerate<Ty: EdgeType + Sync>(
     filepath: &str,
     subgraph_size: usize,
     output: Option<String>,
     num_threads: Option<usize>,
     include_loops: bool,
+    is_directed: bool,
 ) -> Result<()> {
     // Load the graph.
-    let graph = io::load_numeric_graph(filepath, include_loops)?;
+    let graph = io::load_numeric_graph::<Ty>(filepath, include_loops)?;
 
     eprintln!("----------------------------------------");
     eprintln!("Log");
@@ -28,9 +30,11 @@ fn submodule_enumerate(
     eprintln!(">> Number of nodes         : {}", graph.node_count());
     eprintln!(">> Number of edges         : {}", graph.edge_count());
     eprintln!(">> Including loops         : {include_loops}");
+    eprintln!(">> Graph edge type         : {}", if is_directed { "directed" } else { "undirected" });
 
     // Enumerate the subgraphs.
     let now = std::time::Instant::now();
+    // let results = enumerate_subgraphs(&graph, subgraph_size);
     let results = if let Some(num_threads) = num_threads {
         // Build a thread pool and use it to enumerate the subgraphs.
         rayon::ThreadPoolBuilder::new()
@@ -54,7 +58,7 @@ fn submodule_enumerate(
     eprintln!("----------------------------------------");
 
     // Write the results to the output file.
-    io::write_counts(results.counts(), subgraph_size, output)?;
+    io::write_counts(results.counts(), subgraph_size, output, is_directed)?;
 
     Ok(())
 }
@@ -140,7 +144,18 @@ fn main() -> Result<()> {
             subgraph_size,
             threads,
             include_loops,
-        } => submodule_enumerate(&input, subgraph_size, output, threads, include_loops),
+            undirected,
+        } => {
+            if undirected {
+                submodule_enumerate::<Undirected>(
+                    &input, subgraph_size, output, threads, include_loops, false,
+                )
+            } else {
+                submodule_enumerate::<Directed>(
+                    &input, subgraph_size, output, threads, include_loops, true,
+                )
+            }
+        }
         cli::Mode::Format {
             input,
             output,
