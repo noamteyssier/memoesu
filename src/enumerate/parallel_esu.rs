@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
-use petgraph::{Graph, EdgeType};
+use petgraph::{EdgeType, Graph};
 use rayon::prelude::*;
 
 type Counts = ahash::HashMap<Vec<u64>, usize>;
@@ -97,7 +97,6 @@ impl<Ty: EdgeType + Sync> ParEsu<Ty> {
             })
         });
     }
-
 
     pub fn run_nauty(&self, ngraph: &mut NautyGraph) {
         ngraph.run();

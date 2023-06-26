@@ -2,7 +2,7 @@ use anyhow::{bail, Result};
 use bitvec::{prelude::Msb0, view::BitView};
 use graph6_rs::write_graph6;
 use hashbrown::{HashMap, HashSet};
-use petgraph::{Directed, Graph, EdgeType};
+use petgraph::{Directed, EdgeType, Graph};
 use std::{
     fs::File,
     io::{stdout, BufRead, BufReader, BufWriter, Write},
@@ -100,7 +100,10 @@ impl FormatGraph {
 /// Load a graph from a file
 ///
 /// Expects a 1-Indexed numeric white-space delimited edgelist.
-pub fn load_numeric_graph<Ty: EdgeType>(filepath: &str, include_loops: bool) -> Result<Graph<(), (), Ty>> {
+pub fn load_numeric_graph<Ty: EdgeType>(
+    filepath: &str,
+    include_loops: bool,
+) -> Result<Graph<(), (), Ty>> {
     let mut reader = File::open(filepath).map(BufReader::new)?;
     load_numeric_graph_from_buffer(&mut reader, include_loops)
 }
@@ -135,7 +138,7 @@ pub fn write_counts(
     canon_counts: &ahash::HashMap<Vec<u64>, usize>,
     k: usize,
     output: Option<String>,
-    is_directed: bool
+    is_directed: bool,
 ) -> Result<()> {
     if let Some(output) = output {
         let mut buffer = File::create(&output).map(BufWriter::new)?;
@@ -309,7 +312,8 @@ mod testing {
         // 1 -> 1
         let internal = "1\t2\n2\t3\n3\t1\n1\t1";
         let mut buffer = Cursor::new(internal);
-        let graph = load_numeric_graph_from_buffer::<Cursor<&str>, Directed>(&mut buffer, true).unwrap();
+        let graph =
+            load_numeric_graph_from_buffer::<Cursor<&str>, Directed>(&mut buffer, true).unwrap();
         assert_eq!(graph.node_count(), 3);
         assert_eq!(graph.edge_count(), 4);
         assert!(graph.contains_edge(0.into(), 0.into()));
@@ -323,7 +327,8 @@ mod testing {
         // 1 -> 1
         let internal = "1\t2\n2\t3\n3\t1\n1\t1";
         let mut buffer = Cursor::new(internal);
-        let graph = load_numeric_graph_from_buffer::<Cursor<&str>, Directed>(&mut buffer, false).unwrap();
+        let graph =
+            load_numeric_graph_from_buffer::<Cursor<&str>, Directed>(&mut buffer, false).unwrap();
         assert_eq!(graph.node_count(), 3);
         assert_eq!(graph.edge_count(), 3);
         assert!(!graph.contains_edge(0.into(), 0.into()));

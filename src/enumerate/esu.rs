@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
 use ahash::HashMap;
-use petgraph::{Graph, EdgeType};
+use petgraph::{EdgeType, Graph};
 
 type Counts = HashMap<Vec<u64>, usize>;
 type Memo = HashMap<Vec<u64>, Vec<u64>>;
@@ -19,7 +19,7 @@ pub struct Esu<Ty: EdgeType> {
     phantom: PhantomData<Ty>,
 }
 
-impl<Ty: EdgeType> Esu <Ty> {
+impl<Ty: EdgeType> Esu<Ty> {
     pub fn new(motif_size: usize, petgraph: &Graph<(), (), Ty>) -> Self {
         let is_directed = petgraph.is_directed();
         let graph = BitGraph::from_graph(petgraph);
@@ -67,12 +67,16 @@ impl<Ty: EdgeType> Esu <Ty> {
 
     pub fn build_nauty_undir(&mut self) {
         self.current.iter().enumerate().for_each(|(i, &u)| {
-            self.current.iter().enumerate().skip(i + 1).for_each(|(j, &v)| {
-                if self.graph.is_connected(u, v) {
-                    self.ngraph.add_arc(i, j);
-                    self.ngraph.add_arc(j, i);
-                }
-            })
+            self.current
+                .iter()
+                .enumerate()
+                .skip(i + 1)
+                .for_each(|(j, &v)| {
+                    if self.graph.is_connected(u, v) {
+                        self.ngraph.add_arc(i, j);
+                        self.ngraph.add_arc(j, i);
+                    }
+                })
         });
     }
 
@@ -164,7 +168,10 @@ impl<Ty: EdgeType> Esu <Ty> {
     }
 }
 
-pub fn enumerate_subgraphs<Ty: EdgeType>(petgraph: &Graph<(), (), Ty>, motif_size: usize) -> EnumResult {
+pub fn enumerate_subgraphs<Ty: EdgeType>(
+    petgraph: &Graph<(), (), Ty>,
+    motif_size: usize,
+) -> EnumResult {
     let mut esu = Esu::new(motif_size, petgraph);
     esu.enumerate();
     esu.result()

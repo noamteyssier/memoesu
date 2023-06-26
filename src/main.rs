@@ -10,7 +10,7 @@ use cli::Cli;
 use enrichment::enrichment;
 use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs};
 use io::FormatGraph;
-use petgraph::{Undirected, Directed, EdgeType};
+use petgraph::{Directed, EdgeType, Undirected};
 
 /// Enumerate the subgraphs of a given size in a graph.
 fn submodule_enumerate<Ty: EdgeType + Sync>(
@@ -30,7 +30,14 @@ fn submodule_enumerate<Ty: EdgeType + Sync>(
     eprintln!(">> Number of nodes         : {}", graph.node_count());
     eprintln!(">> Number of edges         : {}", graph.edge_count());
     eprintln!(">> Including loops         : {include_loops}");
-    eprintln!(">> Graph edge type         : {}", if is_directed { "directed" } else { "undirected" });
+    eprintln!(
+        ">> Graph edge type         : {}",
+        if is_directed {
+            "directed"
+        } else {
+            "undirected"
+        }
+    );
 
     // Enumerate the subgraphs.
     let now = std::time::Instant::now();
@@ -148,11 +155,21 @@ fn main() -> Result<()> {
         } => {
             if undirected {
                 submodule_enumerate::<Undirected>(
-                    &input, subgraph_size, output, threads, include_loops, false,
+                    &input,
+                    subgraph_size,
+                    output,
+                    threads,
+                    include_loops,
+                    false,
                 )
             } else {
                 submodule_enumerate::<Directed>(
-                    &input, subgraph_size, output, threads, include_loops, true,
+                    &input,
+                    subgraph_size,
+                    output,
+                    threads,
+                    include_loops,
+                    true,
                 )
             }
         }

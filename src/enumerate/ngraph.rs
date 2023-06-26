@@ -30,12 +30,15 @@ pub struct NautyGraph {
     pub stats: statsblk,
 }
 impl NautyGraph {
-    
     pub fn new(n: usize, dir: bool) -> Self {
         let m = SETWORDSNEEDED(n);
         let graph = empty_graph(m, n);
         let canon = empty_graph(m, n);
-        let opts = if dir { opts_default_dir() } else { opts_default_undir() };
+        let opts = if dir {
+            opts_default_dir()
+        } else {
+            opts_default_undir()
+        };
         let stats = statsblk::default();
         Self {
             graph,
