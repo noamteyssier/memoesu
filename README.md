@@ -15,7 +15,7 @@ which describes a graph traversal method similar to DFS but only following child
 nodes with larger node labels.
 
 This is a very fast subgraph identification method, but at the end of every subgraph
-identification a call is made to NAUTY<sup>[2](#references))</sup> to calculate that
+identification a call is made to NAUTY<sup>[2](#references)</sup> to calculate that
 subgraphs canonical labeling, which is the rate limiting step of the algorithm.
 
 This program is a rust implementation of the ESU algorithm, but with an
