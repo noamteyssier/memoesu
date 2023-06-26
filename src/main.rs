@@ -41,18 +41,18 @@ fn submodule_enumerate<Ty: EdgeType + Sync>(
 
     // Enumerate the subgraphs.
     let now = std::time::Instant::now();
-    // let results = enumerate_subgraphs(&graph, subgraph_size);
-    let results = if let Some(num_threads) = num_threads {
-        // Build a thread pool and use it to enumerate the subgraphs.
-        rayon::ThreadPoolBuilder::new()
-            .num_threads(num_threads)
-            .build_global()?;
 
-        // Run the enumeration in parallel.
-        parallel_enumerate_subgraphs(&graph, subgraph_size)
-    } else {
-        // Run the enumeration in serial.
-        enumerate_subgraphs(&graph, subgraph_size)
+    let results = match num_threads {
+        Some(1) | None => enumerate_subgraphs(&graph, subgraph_size),
+        Some(num_threads) => {
+            // Build a thread pool and use it to enumerate the subgraphs.
+            rayon::ThreadPoolBuilder::new()
+                .num_threads(num_threads)
+                .build_global()?;
+
+            // Run the enumeration in parallel.
+            parallel_enumerate_subgraphs(&graph, subgraph_size)
+        }
     };
 
     eprintln!(">> Total subgraphs         : {}", results.total_subgraphs());
