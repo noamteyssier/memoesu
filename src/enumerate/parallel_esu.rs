@@ -1,29 +1,37 @@
+use std::marker::PhantomData;
+
 use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
-use petgraph::{Directed, Graph};
+use petgraph::{Graph, EdgeType};
 use rayon::prelude::*;
 
 type Counts = ahash::HashMap<Vec<u64>, usize>;
 type Memo = flurry::HashMap<Vec<u64>, Vec<u64>>;
 
-pub struct ParEsu {
+pub struct ParEsu<Ty: EdgeType + Sync> {
     motif_size: usize,
     graph: BitGraph,
     counts: Counts,
     memo: Memo,
     total: usize,
+    is_directed: bool,
+    phantom: PhantomData<Ty>,
 }
-impl ParEsu {
-    pub fn new(motif_size: usize, petgraph: &Graph<(), (), Directed>) -> Self {
+impl<Ty: EdgeType + Sync> ParEsu<Ty> {
+    pub fn new(motif_size: usize, petgraph: &Graph<(), (), Ty>) -> Self {
+        let is_directed = petgraph.is_directed();
         let graph = BitGraph::from_graph(petgraph);
         let counts = Counts::default();
         let memo = Memo::default();
         let total = 0;
+        let phantom = PhantomData;
         Self {
             motif_size,
             graph,
             counts,
             memo,
             total,
+            is_directed,
+            phantom,
         }
     }
 
@@ -32,7 +40,7 @@ impl ParEsu {
         let (counts, total) = (0..self.graph.n)
             .par_bridge()
             .map(|i| {
-                let mut ngraph = NautyGraph::new_directed(self.motif_size);
+                let mut ngraph = NautyGraph::new(self.motif_size, self.is_directed);
                 let mut counts = Counts::default();
                 let mut current = vec![0; self.motif_size];
                 let mut total = 0;
@@ -62,6 +70,14 @@ impl ParEsu {
     }
 
     pub fn build_nauty(&self, current: &[usize], ngraph: &mut NautyGraph) {
+        if self.is_directed {
+            self.build_nauty_dir(current, ngraph);
+        } else {
+            self.build_nauty_undir(current, ngraph);
+        }
+    }
+
+    fn build_nauty_dir(&self, current: &[usize], ngraph: &mut NautyGraph) {
         current.iter().enumerate().for_each(|(i, &u)| {
             current.iter().enumerate().for_each(|(j, &v)| {
                 if self.graph.is_connected_directed(u, v) {
@@ -70,6 +86,18 @@ impl ParEsu {
             })
         });
     }
+
+    fn build_nauty_undir(&self, current: &[usize], ngraph: &mut NautyGraph) {
+        current.iter().enumerate().for_each(|(i, &u)| {
+            current.iter().enumerate().skip(i + 1).for_each(|(j, &v)| {
+                if self.graph.is_connected(u, v) {
+                    ngraph.add_arc(i, j);
+                    ngraph.add_arc(j, i);
+                }
+            })
+        });
+    }
+
 
     pub fn run_nauty(&self, ngraph: &mut NautyGraph) {
         ngraph.run();
@@ -179,8 +207,8 @@ impl ParEsu {
     }
 }
 
-pub fn parallel_enumerate_subgraphs(
-    graph: &Graph<(), (), Directed>,
+pub fn parallel_enumerate_subgraphs<Ty: EdgeType + Sync>(
+    graph: &Graph<(), (), Ty>,
     motif_size: usize,
 ) -> EnumResult {
     let mut esu = ParEsu::new(motif_size, graph);
@@ -191,13 +219,15 @@ pub fn parallel_enumerate_subgraphs(
 #[cfg(test)]
 mod testing {
 
+    use petgraph::Directed;
+
     use super::*;
     use crate::io::load_numeric_graph;
 
     #[test]
     fn example_s3() {
         let filepath = "example/example.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = parallel_enumerate_subgraphs(&graph, 3);
         assert_eq!(result.total_subgraphs(), 16);
         assert_eq!(result.unique_subgraphs(), 4);
@@ -215,7 +245,7 @@ mod testing {
     #[test]
     fn example_s4() {
         let filepath = "example/example.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = parallel_enumerate_subgraphs(&graph, 4);
         assert_eq!(result.total_subgraphs(), 24);
         assert_eq!(result.unique_subgraphs(), 8);
@@ -237,7 +267,7 @@ mod testing {
     #[test]
     fn yeast_s3() {
         let filepath = "example/yeast.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = parallel_enumerate_subgraphs(&graph, 3);
         assert_eq!(result.total_subgraphs(), 13150);
         assert_eq!(result.unique_subgraphs(), 7);
@@ -263,7 +293,7 @@ mod testing {
     #[test]
     fn yeast_s4() {
         let filepath = "example/yeast.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = parallel_enumerate_subgraphs(&graph, 4);
         assert_eq!(result.total_subgraphs(), 183174);
         assert_eq!(result.unique_subgraphs(), 34);

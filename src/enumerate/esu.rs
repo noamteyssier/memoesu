@@ -1,11 +1,13 @@
+use std::marker::PhantomData;
+
 use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
 use ahash::HashMap;
-use petgraph::{Directed, Graph};
+use petgraph::{Graph, EdgeType};
 
 type Counts = HashMap<Vec<u64>, usize>;
 type Memo = HashMap<Vec<u64>, Vec<u64>>;
 
-pub struct Esu {
+pub struct Esu<Ty: EdgeType> {
     motif_size: usize,
     current: Vec<usize>,
     graph: BitGraph,
@@ -13,15 +15,20 @@ pub struct Esu {
     counts: Counts,
     memo: Memo,
     total: usize,
+    is_directed: bool,
+    phantom: PhantomData<Ty>,
 }
-impl Esu {
-    pub fn new(motif_size: usize, petgraph: &Graph<(), (), Directed>) -> Self {
+
+impl<Ty: EdgeType> Esu <Ty> {
+    pub fn new(motif_size: usize, petgraph: &Graph<(), (), Ty>) -> Self {
+        let is_directed = petgraph.is_directed();
         let graph = BitGraph::from_graph(petgraph);
         let current = vec![0; motif_size];
-        let ngraph = NautyGraph::new_directed(motif_size);
+        let ngraph = NautyGraph::new(motif_size, is_directed);
         let counts = Counts::default();
         let memo = Memo::default();
         let total = 0;
+        let phantom = PhantomData;
         Self {
             motif_size,
             current,
@@ -30,6 +37,8 @@ impl Esu {
             counts,
             memo,
             total,
+            is_directed,
+            phantom,
         }
     }
 
@@ -39,10 +48,29 @@ impl Esu {
     }
 
     pub fn build_nauty(&mut self) {
+        if self.is_directed {
+            self.build_nauty_dir();
+        } else {
+            self.build_nauty_undir();
+        }
+    }
+
+    pub fn build_nauty_dir(&mut self) {
         self.current.iter().enumerate().for_each(|(i, &u)| {
             self.current.iter().enumerate().for_each(|(j, &v)| {
                 if self.graph.is_connected_directed(u, v) {
                     self.ngraph.add_arc(i, j);
+                }
+            })
+        });
+    }
+
+    pub fn build_nauty_undir(&mut self) {
+        self.current.iter().enumerate().for_each(|(i, &u)| {
+            self.current.iter().enumerate().skip(i + 1).for_each(|(j, &v)| {
+                if self.graph.is_connected(u, v) {
+                    self.ngraph.add_arc(i, j);
+                    self.ngraph.add_arc(j, i);
                 }
             })
         });
@@ -136,7 +164,7 @@ impl Esu {
     }
 }
 
-pub fn enumerate_subgraphs(petgraph: &Graph<(), (), Directed>, motif_size: usize) -> EnumResult {
+pub fn enumerate_subgraphs<Ty: EdgeType>(petgraph: &Graph<(), (), Ty>, motif_size: usize) -> EnumResult {
     let mut esu = Esu::new(motif_size, petgraph);
     esu.enumerate();
     esu.result()
@@ -147,11 +175,12 @@ mod testing {
 
     use super::*;
     use crate::io::load_numeric_graph;
+    use petgraph::Directed;
 
     #[test]
     fn example_s3() {
         let filepath = "example/example.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = enumerate_subgraphs(&graph, 3);
         assert_eq!(result.total_subgraphs(), 16);
         assert_eq!(result.unique_subgraphs(), 4);
@@ -169,7 +198,7 @@ mod testing {
     #[test]
     fn example_s4() {
         let filepath = "example/example.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = enumerate_subgraphs(&graph, 4);
         assert_eq!(result.total_subgraphs(), 24);
         assert_eq!(result.unique_subgraphs(), 8);
@@ -191,7 +220,7 @@ mod testing {
     #[test]
     fn yeast_s3() {
         let filepath = "example/yeast.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = enumerate_subgraphs(&graph, 3);
         assert_eq!(result.total_subgraphs(), 13150);
         assert_eq!(result.unique_subgraphs(), 7);
@@ -217,7 +246,7 @@ mod testing {
     #[test]
     fn yeast_s4() {
         let filepath = "example/yeast.txt";
-        let graph = load_numeric_graph(filepath, false).unwrap();
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
         let result = enumerate_subgraphs(&graph, 4);
         assert_eq!(result.total_subgraphs(), 183174);
         assert_eq!(result.unique_subgraphs(), 34);
