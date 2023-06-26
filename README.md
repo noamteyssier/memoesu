@@ -10,13 +10,13 @@ subgraph appears in a larger graph.
 This requires traversing the graph, avoiding double counting sets of nodes,
 and calculating isomorphism for each subgraph to increments its abundance.
 
-The ESU algorithm was described by Wernicke in 2005^[1](#references)
+The ESU algorithm was described by Wernicke in 2005<sup>[1](#references)</sup>
 which describes a graph traversal method similar to DFS but only following child
 nodes with larger node labels.
 
 This is a very fast subgraph identification method, but at the end of every subgraph
-identification a call is made to NAUTY to calculate that subgraphs canonical labeling,
-which is the rate limiting step of the algorithm.
+identification a call is made to NAUTY<sup>[2](#references))</sup> to calculate that
+subgraphs canonical labeling, which is the rate limiting step of the algorithm.
 
 This program is a rust implementation of the ESU algorithm, but with an
 additional memoization step to avoid making multiple calls to NAUTY by hashing
@@ -74,9 +74,9 @@ To calculate network motifs we need to first create a background set of random
 graphs that are comparable to the original network.
 
 The method we employ here is the random switching method, originally used in
-the `mfinder` tool, and described by Milo^[2](#references), which describes
-an algorithm to generate random graphs with equivalent degree sequences to
-the original graph.
+the `mfinder` tool, and described by Milo<sup>[3](#references)</sup>, which
+describes an algorithm to generate random graphs with equivalent degree
+sequences to the original graph.
 
 To perform the switching algorithm to generate a random graph we can use
 the `switch` subcommand:
@@ -91,4 +91,5 @@ graph.
 ## References
 
 1. S. Wernicke, “Efficient Detection of Network Motifs,” IEEE/ACM Trans. Comput. Biol. and Bioinf., vol. 3, no. 4, pp. 347–359, Oct. 2006, doi: 10.1109/TCBB.2006.51.
-2. R. Milo, N. Kashtan, S. Itzkovitz, M. E. J. Newman, and U. Alon, “On the uniform generation of random graphs with prescribed degree sequences.” arXiv, May 30, 2004. Accessed: Jun. 26, 2023. [Online]. Available: http://arxiv.org/abs/cond-mat/0312028
+2. B. D. McKay and A. Piperno, “Practical graph isomorphism, II,” Journal of Symbolic Computation, vol. 60, pp. 94–112, Jan. 2014, doi: 10.1016/j.jsc.2013.09.003.
+3. R. Milo, N. Kashtan, S. Itzkovitz, M. E. J. Newman, and U. Alon, “On the uniform generation of random graphs with prescribed degree sequences.” arXiv, May 30, 2004. Accessed: Jun. 26, 2023. [Online]. Available: http://arxiv.org/abs/cond-mat/0312028
