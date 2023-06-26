@@ -2,6 +2,10 @@
 name = "memoesu"
 version = "0.2.3"
 edition = "2021"
+keywords = ["enumeration", "subgraph", "graph", "isomorphism", "ESU"]
+license = "MIT"
+repository = "https://github.com/noamteyssier/memoesu"
+description = "fast subgraph enumeration on graphs using a memoized parallel ESU algorithm"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
