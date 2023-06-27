@@ -49,10 +49,6 @@ pub enum Mode {
         #[arg(short, long)]
         subgraph_size: usize,
 
-        /// Number of threads to use [default: 1]
-        #[arg(short, long)]
-        threads: Option<usize>,
-
         /// Include edges with loops (i.e. a node connects to itself) [default: false]
         #[arg(short = 'l', long)]
         include_loops: bool,

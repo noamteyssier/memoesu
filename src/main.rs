@@ -77,7 +77,6 @@ fn submodule_groups<Ty: EdgeType + Sync>(
     filepath: &str,
     subgraph_size: usize,
     output: Option<String>,
-    num_threads: Option<usize>,
     include_loops: bool,
     is_directed: bool,
 ) -> Result<()> {
@@ -102,19 +101,6 @@ fn submodule_groups<Ty: EdgeType + Sync>(
     // Enumerate the subgraphs.
     let now = std::time::Instant::now();
     let results = group_subgraphs(&graph, subgraph_size);
-
-    // let results = match num_threads {
-    //     Some(1) | None => group_subgraphs(&graph, subgraph_size),
-    //     Some(num_threads) => {
-    //         // Build a thread pool and use it to enumerate the subgraphs.
-    //         rayon::ThreadPoolBuilder::new()
-    //             .num_threads(num_threads)
-    //             .build_global()?;
-
-    //         // Run the enumeration in parallel.
-    //         parallel_enumerate_subgraphs(&graph, subgraph_size)
-    //     }
-    // };
 
     eprintln!(">> Total subgraphs         : {}", results.total_subgraphs());
     eprintln!(
@@ -237,7 +223,6 @@ fn main() -> Result<()> {
             input,
             output,
             subgraph_size,
-            threads,
             include_loops,
             undirected,
         } => {
@@ -246,7 +231,6 @@ fn main() -> Result<()> {
                     &input,
                     subgraph_size,
                     output,
-                    threads,
                     include_loops,
                     false,
                 )
@@ -255,7 +239,6 @@ fn main() -> Result<()> {
                     &input,
                     subgraph_size,
                     output,
-                    threads,
                     include_loops,
                     true,
                 )
