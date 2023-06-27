@@ -76,7 +76,7 @@ However, you can reformat a string labeled graph into an integer graph
 using the `format` subcommand
 
 ```bash
-memoesu enumerate -i example/unformatted.txt -o formatted
+memoesu format -i example/unformatted.txt -o formatted
 ```
 
 Which will generate two new files with the `formatted` prefix:
@@ -105,6 +105,26 @@ memoesu switch -i example/example.txt
 
 This creates a new random graph with an identical degree sequence to the original
 graph.
+
+### Groups
+
+The `NAUTY` canonical graph calculation also calculates orbit information for every
+node in the subgraph.
+To gather both subgraph membership, as well as subgraph node label and orbit, for
+every node in the original graph we can use the `groups` subcommand.
+
+Currently this is only supported as a single-threaded command.
+
+```bash
+memoesu groups -i example/example.txt -s 3 -o groups.txt
+```
+
+This will output a table whose columns are:
+
+1. node_index
+2. subgraph graph6 string
+3. node_label (i.e. position in subgraph)
+4. orbit
 
 ## References
 

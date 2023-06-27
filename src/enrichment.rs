@@ -1,5 +1,5 @@
 use crate::{
-    enumerate::{enumerate_subgraphs, EnumResult},
+    enumerate::{enumerate_subgraphs, EnumResult, Label},
     switching::switching,
 };
 use hashbrown::HashMap;
@@ -51,7 +51,7 @@ pub fn enrichment(
 
 fn assemble_results(
     original_results: &EnumResult,
-    null_map: HashMap<&Vec<u64>, Array1<f64>>,
+    null_map: HashMap<&Label, Array1<f64>>,
 ) -> EnrichResult {
     let num_subgraphs = original_results.total_subgraphs();
     let num_unique = original_results.unique_subgraphs();
@@ -80,7 +80,7 @@ fn assemble_results(
             zscore = 0.;
         }
 
-        subgraphs.push(key.clone());
+        subgraphs.push(key.to_vec());
         abundances.push(*abundance);
         frequencies.push(frequency);
         zscores.push(zscore);
@@ -102,7 +102,7 @@ fn initialize_null_map(
     results: &EnumResult,
 
     num_random_graphs: usize,
-) -> HashMap<&Vec<u64>, Array1<f64>> {
+) -> HashMap<&Label, Array1<f64>> {
     let mut null_map = HashMap::with_capacity(results.counts().len());
     for key in results.counts().keys() {
         null_map.insert(key, Array1::zeros(num_random_graphs));

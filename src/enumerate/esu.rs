@@ -1,21 +1,22 @@
-use std::marker::PhantomData;
-
+use super::{result::GroupResult, Counts, Groups, Label};
 use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
 use ahash::HashMap;
 use petgraph::{EdgeType, Graph};
+use std::{cell::RefCell, marker::PhantomData};
 
-type Counts = HashMap<Vec<u64>, usize>;
-type Memo = HashMap<Vec<u64>, Vec<u64>>;
+type Memo = HashMap<Label, Label>;
 
 pub struct Esu<Ty: EdgeType> {
     motif_size: usize,
     current: Vec<usize>,
     graph: BitGraph,
     ngraph: NautyGraph,
-    counts: Counts,
+    counts: RefCell<Counts>,
     memo: Memo,
+    groups: RefCell<Groups>,
     total: usize,
     is_directed: bool,
+    identify_groups: bool,
     phantom: PhantomData<Ty>,
 }
 
@@ -25,10 +26,12 @@ impl<Ty: EdgeType> Esu<Ty> {
         let graph = BitGraph::from_graph(petgraph);
         let current = vec![0; motif_size];
         let ngraph = NautyGraph::new(motif_size, is_directed);
-        let counts = Counts::default();
+        let counts = Counts::default().into();
         let memo = Memo::default();
+        let groups = Groups::default().into();
         let total = 0;
         let phantom = PhantomData;
+        let identify_groups = false;
         Self {
             motif_size,
             current,
@@ -36,8 +39,10 @@ impl<Ty: EdgeType> Esu<Ty> {
             ngraph,
             counts,
             memo,
+            groups,
             total,
             is_directed,
+            identify_groups,
             phantom,
         }
     }
@@ -45,6 +50,11 @@ impl<Ty: EdgeType> Esu<Ty> {
     pub fn enumerate(&mut self) {
         let ext = vec![0; self.graph.n];
         (0..self.graph.n).for_each(|i| self.go(i, 0, 0, &ext));
+    }
+
+    pub fn identify_groups(&mut self) {
+        self.identify_groups = true;
+        self.enumerate();
     }
 
     pub fn build_nauty(&mut self) {
@@ -84,6 +94,36 @@ impl<Ty: EdgeType> Esu<Ty> {
         self.ngraph.run();
     }
 
+    /// Increment the count of the given label.
+    ///
+    /// Implemented with a RefCell to allow for interior mutability.
+    fn increment_label(&self, label: &Label) {
+        let mut counts_internal = self.counts.borrow_mut();
+        if let Some(count) = counts_internal.get_mut(label) {
+            *count += 1;
+        } else {
+            counts_internal.insert(label.clone(), 1);
+        }
+    }
+
+    /// Update the subgraph membership and orbit positions for all
+    /// nodes in the current subgraph.
+    ///
+    /// Implemented with a RefCell to allow for interior mutability.
+    fn update_groups(&self, label: &Label) {
+        let mut groups_internal = self.groups.borrow_mut();
+        for idx in 0..self.motif_size {
+            let node_idx = self.current[idx];
+            let orbit = self.ngraph.nodes.orbits[idx];
+            let node_label = self.ngraph.nodes.lab[idx];
+            let group = groups_internal
+                .entry(node_idx)
+                .or_insert_with(HashMap::default);
+            let group_info = (label.clone(), node_label, orbit);
+            *group.entry(group_info).or_insert(0) += 1;
+        }
+    }
+
     /// The main function for the enumeration.
     ///
     /// This function is called recursively to enumerate all subgraphs of the
@@ -109,18 +149,19 @@ impl<Ty: EdgeType> Esu<Ty> {
             // Otherwise run nauty to find the canonical label of the subgraph.
             } else {
                 self.run_nauty();
-                let label = self.ngraph.canon();
-                self.memo
-                    .insert(self.ngraph.graph().to_vec(), label.to_vec());
+                let original = self.ngraph.graph().to_vec();
+                let label = self.ngraph.canon().to_vec();
+                self.memo.insert(original.into(), label.into());
                 self.ngraph.clear_canon();
                 self.memo.get(self.ngraph.graph()).unwrap()
             };
 
             // Increment the count of the subgraph with the given label.
-            if let Some(count) = self.counts.get_mut(label) {
-                *count += 1;
-            } else {
-                self.counts.insert(label.to_vec(), 1);
+            self.increment_label(label);
+
+            // Add the subgraph label and orbit to the node group membership
+            if self.identify_groups {
+                self.update_groups(label);
             }
 
             self.ngraph.clear_graph();
@@ -164,7 +205,15 @@ impl<Ty: EdgeType> Esu<Ty> {
     }
 
     pub fn result(self) -> EnumResult {
-        EnumResult::new(self.counts, self.total)
+        EnumResult::new(self.counts.into_inner(), self.total)
+    }
+
+    pub fn group_results(self) -> GroupResult {
+        GroupResult::new(
+            self.groups.into_inner(),
+            self.total,
+            self.counts.into_inner().len(),
+        )
     }
 }
 
@@ -175,6 +224,15 @@ pub fn enumerate_subgraphs<Ty: EdgeType>(
     let mut esu = Esu::new(motif_size, petgraph);
     esu.enumerate();
     esu.result()
+}
+
+pub fn group_subgraphs<Ty: EdgeType>(
+    petgraph: &Graph<(), (), Ty>,
+    motif_size: usize,
+) -> GroupResult {
+    let mut esu = Esu::new(motif_size, petgraph);
+    esu.identify_groups();
+    esu.group_results()
 }
 
 #[cfg(test)]
@@ -506,6 +564,54 @@ mod testing {
         result.counts().values().for_each(|&c| {
             let cond = c == 2 || c == 202 || c == 1624 || c == 1857 || c == 28033 || c == 151456;
             assert!(cond);
+        })
+    }
+
+    #[test]
+    fn dir_example_s3_groups() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
+        let result = group_subgraphs(&graph, 3);
+        assert_eq!(result.total_subgraphs(), 16);
+        assert_eq!(result.unique_subgraphs(), 4);
+        (0..graph.node_count()).for_each(|i| {
+            assert!(result.groups().contains_key(&i));
+        })
+    }
+
+    #[test]
+    fn dir_example_s4_groups() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
+        let result = group_subgraphs(&graph, 4);
+        assert_eq!(result.total_subgraphs(), 24);
+        assert_eq!(result.unique_subgraphs(), 8);
+        (0..graph.node_count()).for_each(|i| {
+            assert!(result.groups().contains_key(&i));
+        })
+    }
+
+    #[test]
+    fn undir_example_s3_groups() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        let result = group_subgraphs(&graph, 3);
+        assert_eq!(result.total_subgraphs(), 16);
+        assert_eq!(result.unique_subgraphs(), 2);
+        (0..graph.node_count()).for_each(|i| {
+            assert!(result.groups().contains_key(&i));
+        })
+    }
+
+    #[test]
+    fn undir_example_s4_groups() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        let result = group_subgraphs(&graph, 4);
+        assert_eq!(result.total_subgraphs(), 24);
+        assert_eq!(result.unique_subgraphs(), 3);
+        (0..graph.node_count()).for_each(|i| {
+            assert!(result.groups().contains_key(&i));
         })
     }
 }
