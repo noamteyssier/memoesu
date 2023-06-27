@@ -79,6 +79,7 @@ fn submodule_groups<Ty: EdgeType + Sync>(
     output: Option<String>,
     include_loops: bool,
     is_directed: bool,
+    no_header: bool,
 ) -> Result<()> {
     // Load the graph.
     let graph = io::load_numeric_graph::<Ty>(filepath, include_loops)?;
@@ -111,7 +112,7 @@ fn submodule_groups<Ty: EdgeType + Sync>(
     eprintln!("----------------------------------------");
 
     // Write the results to the output file.
-    io::write_groups(results.groups(), subgraph_size, output, is_directed)?;
+    io::write_groups(results.groups(), subgraph_size, output, is_directed, no_header)?;
 
     Ok(())
 }
@@ -225,11 +226,12 @@ fn main() -> Result<()> {
             subgraph_size,
             include_loops,
             undirected,
+            no_header,
         } => {
             if undirected {
-                submodule_groups::<Undirected>(&input, subgraph_size, output, include_loops, false)
+                submodule_groups::<Undirected>(&input, subgraph_size, output, include_loops, false, no_header)
             } else {
-                submodule_groups::<Directed>(&input, subgraph_size, output, include_loops, true)
+                submodule_groups::<Directed>(&input, subgraph_size, output, include_loops, true, no_header)
             }
         }
         cli::Mode::Format {
