@@ -35,6 +35,33 @@ pub enum Mode {
         undirected: bool,
     },
 
+    /// Report all subgraph membership and orbit position for each node in a graph.
+    Groups {
+        /// File path to the input graph (white space separated edgelist)
+        #[arg(short, long)]
+        input: String,
+
+        /// Output file path to write results to (default: stdout)
+        #[arg(short, long)]
+        output: Option<String>,
+
+        /// Size of the subgraphs to find in the input graph
+        #[arg(short, long)]
+        subgraph_size: usize,
+
+        /// Number of threads to use [default: 1]
+        #[arg(short, long)]
+        threads: Option<usize>,
+
+        /// Include edges with loops (i.e. a node connects to itself) [default: false]
+        #[arg(short = 'l', long)]
+        include_loops: bool,
+
+        /// Assume undirected graph (i.e. edges are bidirectional) [default: false]
+        #[arg(short, long)]
+        undirected: bool,
+    },
+
     /// Formats an input graph into a usable format for `memoesu`
     Format {
         /// File path to the input graph (white space separated edgelist)
