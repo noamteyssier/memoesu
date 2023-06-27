@@ -56,6 +56,10 @@ pub enum Mode {
         /// Assume undirected graph (i.e. edges are bidirectional) [default: false]
         #[arg(short, long)]
         undirected: bool,
+
+        /// Remove header from output [default: false]
+        #[arg(short, long)]
+        no_header: bool,
     },
 
     /// Formats an input graph into a usable format for `memoesu`

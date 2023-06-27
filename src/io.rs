@@ -179,14 +179,15 @@ pub fn write_groups(
     k: usize,
     output: Option<String>,
     is_directed: bool,
+    no_header: bool,
 ) -> Result<()> {
     if let Some(output) = output {
         let mut buffer = File::create(&output).map(BufWriter::new)?;
         eprintln!(">> Writing results to      : {}", &output);
-        write_groups_to_buffer(&mut buffer, groups, k, is_directed)
+        write_groups_to_buffer(&mut buffer, groups, k, is_directed, no_header)
     } else {
         let mut buffer = BufWriter::new(stdout().lock());
-        write_groups_to_buffer(&mut buffer, groups, k, is_directed)
+        write_groups_to_buffer(&mut buffer, groups, k, is_directed, no_header)
     }
 }
 
@@ -196,7 +197,11 @@ fn write_groups_to_buffer<W: Write>(
     groups: &Groups,
     k: usize,
     is_directed: bool,
+    no_header: bool,
 ) -> Result<()> {
+    if !no_header {
+        writeln!(buffer, "node_idx\tcanon\tlabel\torbit\tabundance")?;
+    }
     for (node_idx, group_info) in groups.iter() {
         for ((label, node_label, orbit), abundance) in group_info.iter() {
             let adj = graph_to_flat_adj(label, k);
