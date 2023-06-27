@@ -8,7 +8,10 @@ use std::{
     io::{stdout, BufRead, BufReader, BufWriter, Write},
 };
 
-use crate::{enrichment::EnrichResult, enumerate::{Counts, Label, Groups}};
+use crate::{
+    enrichment::EnrichResult,
+    enumerate::{Counts, Groups, Label},
+};
 
 pub struct FormatGraph {
     graph: Graph<(), (), Directed>,
@@ -198,7 +201,10 @@ fn write_groups_to_buffer<W: Write>(
         for ((label, node_label, orbit), abundance) in group_info.iter() {
             let adj = graph_to_flat_adj(label, k);
             let canon = write_graph6(adj, k, is_directed);
-            writeln!(buffer, "{node_idx}\t{canon}\t{node_label}\t{orbit}\t{abundance}")?;
+            writeln!(
+                buffer,
+                "{node_idx}\t{canon}\t{node_label}\t{orbit}\t{abundance}"
+            )?;
         }
     }
     Ok(())

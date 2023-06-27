@@ -233,7 +233,14 @@ fn main() -> Result<()> {
                 )
             }
         }
-        cli::Mode::Groups { input, output, subgraph_size, threads, include_loops, undirected } => {
+        cli::Mode::Groups {
+            input,
+            output,
+            subgraph_size,
+            threads,
+            include_loops,
+            undirected,
+        } => {
             if undirected {
                 submodule_groups::<Undirected>(
                     &input,

@@ -33,7 +33,11 @@ pub struct GroupResult {
 }
 impl GroupResult {
     pub fn new(groups: Groups, num_total_subgraphs: usize, num_unique_subgraphs: usize) -> Self {
-        Self { groups, num_total_subgraphs, num_unique_subgraphs }
+        Self {
+            groups,
+            num_total_subgraphs,
+            num_unique_subgraphs,
+        }
     }
 
     pub fn groups(&self) -> &Groups {

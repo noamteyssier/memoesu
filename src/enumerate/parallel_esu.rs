@@ -1,8 +1,8 @@
-use std::{marker::PhantomData, sync::Arc};
+use super::{Counts, Label};
 use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
 use petgraph::{EdgeType, Graph};
 use rayon::prelude::*;
-use super::{Counts, Label};
+use std::{marker::PhantomData, sync::Arc};
 
 type Memo = flurry::HashMap<Label, Label>;
 

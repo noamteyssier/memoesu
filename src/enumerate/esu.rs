@@ -1,8 +1,8 @@
-use std::{marker::PhantomData, cell::RefCell};
+use super::{result::GroupResult, Counts, Groups, Label};
 use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
 use ahash::HashMap;
 use petgraph::{EdgeType, Graph};
-use super::{Counts, Label, Groups, result::GroupResult};
+use std::{cell::RefCell, marker::PhantomData};
 
 type Memo = HashMap<Label, Label>;
 
@@ -116,7 +116,9 @@ impl<Ty: EdgeType> Esu<Ty> {
             let node_idx = self.current[idx];
             let orbit = self.ngraph.nodes.orbits[idx];
             let node_label = self.ngraph.nodes.lab[idx];
-            let group = groups_internal.entry(node_idx).or_insert_with(HashMap::default);
+            let group = groups_internal
+                .entry(node_idx)
+                .or_insert_with(HashMap::default);
             let group_info = (label.clone(), node_label, orbit);
             *group.entry(group_info).or_insert(0) += 1;
         }
@@ -149,8 +151,7 @@ impl<Ty: EdgeType> Esu<Ty> {
                 self.run_nauty();
                 let original = self.ngraph.graph().to_vec();
                 let label = self.ngraph.canon().to_vec();
-                self.memo
-                    .insert(original.into(), label.into());
+                self.memo.insert(original.into(), label.into());
                 self.ngraph.clear_canon();
                 self.memo.get(self.ngraph.graph()).unwrap()
             };
@@ -208,7 +209,11 @@ impl<Ty: EdgeType> Esu<Ty> {
     }
 
     pub fn group_results(self) -> GroupResult {
-        GroupResult::new(self.groups.into_inner(), self.total, self.counts.into_inner().len())
+        GroupResult::new(
+            self.groups.into_inner(),
+            self.total,
+            self.counts.into_inner().len(),
+        )
     }
 }
 
