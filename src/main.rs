@@ -227,21 +227,9 @@ fn main() -> Result<()> {
             undirected,
         } => {
             if undirected {
-                submodule_groups::<Undirected>(
-                    &input,
-                    subgraph_size,
-                    output,
-                    include_loops,
-                    false,
-                )
+                submodule_groups::<Undirected>(&input, subgraph_size, output, include_loops, false)
             } else {
-                submodule_groups::<Directed>(
-                    &input,
-                    subgraph_size,
-                    output,
-                    include_loops,
-                    true,
-                )
+                submodule_groups::<Directed>(&input, subgraph_size, output, include_loops, true)
             }
         }
         cli::Mode::Format {
