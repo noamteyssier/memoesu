@@ -566,4 +566,52 @@ mod testing {
             assert!(cond);
         })
     }
+
+    #[test]
+    fn dir_example_s3_groups() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
+        let result = group_subgraphs(&graph, 3);
+        assert_eq!(result.total_subgraphs(), 16);
+        assert_eq!(result.unique_subgraphs(), 4);
+        (0..graph.node_count()).for_each(|i| {
+            assert!(result.groups().contains_key(&i));
+        })
+    }
+
+    #[test]
+    fn dir_example_s4_groups() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Directed>(filepath, false).unwrap();
+        let result = group_subgraphs(&graph, 4);
+        assert_eq!(result.total_subgraphs(), 24);
+        assert_eq!(result.unique_subgraphs(), 8);
+        (0..graph.node_count()).for_each(|i| {
+            assert!(result.groups().contains_key(&i));
+        })
+    }
+
+    #[test]
+    fn undir_example_s3_groups() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        let result = group_subgraphs(&graph, 3);
+        assert_eq!(result.total_subgraphs(), 16);
+        assert_eq!(result.unique_subgraphs(), 2);
+        (0..graph.node_count()).for_each(|i| {
+            assert!(result.groups().contains_key(&i));
+        })
+    }
+
+    #[test]
+    fn undir_example_s4_groups() {
+        let filepath = "example/example.txt";
+        let graph = load_numeric_graph::<Undirected>(filepath, false).unwrap();
+        let result = group_subgraphs(&graph, 4);
+        assert_eq!(result.total_subgraphs(), 24);
+        assert_eq!(result.unique_subgraphs(), 3);
+        (0..graph.node_count()).for_each(|i| {
+            assert!(result.groups().contains_key(&i));
+        })
+    }
 }
