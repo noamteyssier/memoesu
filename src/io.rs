@@ -170,6 +170,40 @@ fn write_counts_to_buffer<W: Write>(
     Ok(())
 }
 
+/// Write the groups of each node to a file or stdout
+pub fn write_groups(
+    groups: &Groups,
+    k: usize,
+    output: Option<String>,
+    is_directed: bool,
+) -> Result<()> {
+    if let Some(output) = output {
+        let mut buffer = File::create(&output).map(BufWriter::new)?;
+        eprintln!(">> Writing results to      : {}", &output);
+        write_groups_to_buffer(&mut buffer, groups, k, is_directed)
+    } else {
+        let mut buffer = BufWriter::new(stdout().lock());
+        write_groups_to_buffer(&mut buffer, groups, k, is_directed)
+    }
+}
+
+/// Write the counts of each subgraph to a buffer
+fn write_groups_to_buffer<W: Write>(
+    buffer: &mut BufWriter<W>,
+    groups: &Groups,
+    k: usize,
+    is_directed: bool,
+) -> Result<()> {
+    for (node_idx, group_info) in groups.iter() {
+        for ((label, node_label, orbit), abundance) in group_info.iter() {
+            let adj = graph_to_flat_adj(label, k);
+            let canon = write_graph6(adj, k, is_directed);
+            writeln!(buffer, "{node_idx}\t{canon}\t{node_label}\t{orbit}\t{abundance}")?;
+        }
+    }
+    Ok(())
+}
+
 /// Convert a nauty graph to a flat adjacency matrix
 fn graph_to_flat_adj(graph: &[u64], n: usize) -> Vec<usize> {
     let mut adj = Vec::with_capacity(n * n);
