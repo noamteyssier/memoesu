@@ -12,6 +12,8 @@ use enumerate::{enumerate_subgraphs, parallel_enumerate_subgraphs};
 use io::FormatGraph;
 use petgraph::{Directed, EdgeType, Undirected};
 
+use crate::enumerate::group_subgraphs;
+
 /// Enumerate the subgraphs of a given size in a graph.
 fn submodule_enumerate<Ty: EdgeType + Sync>(
     filepath: &str,
@@ -66,6 +68,64 @@ fn submodule_enumerate<Ty: EdgeType + Sync>(
 
     // Write the results to the output file.
     io::write_counts(results.counts(), subgraph_size, output, is_directed)?;
+
+    Ok(())
+}
+
+/// Enumerate the subgraphs of a given size in a graph.
+fn submodule_groups<Ty: EdgeType + Sync>(
+    filepath: &str,
+    subgraph_size: usize,
+    output: Option<String>,
+    num_threads: Option<usize>,
+    include_loops: bool,
+    is_directed: bool,
+) -> Result<()> {
+    // Load the graph.
+    let graph = io::load_numeric_graph::<Ty>(filepath, include_loops)?;
+
+    eprintln!("----------------------------------------");
+    eprintln!("Log");
+    eprintln!("----------------------------------------");
+    eprintln!(">> Number of nodes         : {}", graph.node_count());
+    eprintln!(">> Number of edges         : {}", graph.edge_count());
+    eprintln!(">> Including loops         : {include_loops}");
+    eprintln!(
+        ">> Graph edge type         : {}",
+        if is_directed {
+            "directed"
+        } else {
+            "undirected"
+        }
+    );
+
+    // Enumerate the subgraphs.
+    let now = std::time::Instant::now();
+    let results = group_subgraphs(&graph, subgraph_size);
+
+    // let results = match num_threads {
+    //     Some(1) | None => group_subgraphs(&graph, subgraph_size),
+    //     Some(num_threads) => {
+    //         // Build a thread pool and use it to enumerate the subgraphs.
+    //         rayon::ThreadPoolBuilder::new()
+    //             .num_threads(num_threads)
+    //             .build_global()?;
+
+    //         // Run the enumeration in parallel.
+    //         parallel_enumerate_subgraphs(&graph, subgraph_size)
+    //     }
+    // };
+
+    eprintln!(">> Total subgraphs         : {}", results.total_subgraphs());
+    eprintln!(
+        ">> Unique subgraphs        : {}",
+        results.unique_subgraphs()
+    );
+    eprintln!(">> Finished enumeration in : {:?}", now.elapsed());
+    eprintln!("----------------------------------------");
+
+    // Write the results to the output file.
+    io::write_groups(results.groups(), subgraph_size, output, is_directed)?;
 
     Ok(())
 }
@@ -164,6 +224,27 @@ fn main() -> Result<()> {
                 )
             } else {
                 submodule_enumerate::<Directed>(
+                    &input,
+                    subgraph_size,
+                    output,
+                    threads,
+                    include_loops,
+                    true,
+                )
+            }
+        }
+        cli::Mode::Groups { input, output, subgraph_size, threads, include_loops, undirected } => {
+            if undirected {
+                submodule_groups::<Undirected>(
+                    &input,
+                    subgraph_size,
+                    output,
+                    threads,
+                    include_loops,
+                    false,
+                )
+            } else {
+                submodule_groups::<Directed>(
                     &input,
                     subgraph_size,
                     output,
