@@ -8,7 +8,7 @@ use std::{
     io::{stdout, BufRead, BufReader, BufWriter, Write},
 };
 
-use crate::enrichment::EnrichResult;
+use crate::{enrichment::EnrichResult, enumerate::{Counts, Label, Groups}};
 
 pub struct FormatGraph {
     graph: Graph<(), (), Directed>,
@@ -135,7 +135,7 @@ pub fn load_numeric_graph_from_buffer<B: BufRead, Ty: EdgeType>(
 
 /// Write the counts of each subgraph to a file or stdout
 pub fn write_counts(
-    canon_counts: &ahash::HashMap<Vec<u64>, usize>,
+    canon_counts: &Counts,
     k: usize,
     output: Option<String>,
     is_directed: bool,
@@ -153,12 +153,12 @@ pub fn write_counts(
 /// Write the counts of each subgraph to a buffer
 fn write_counts_to_buffer<W: Write>(
     buffer: &mut BufWriter<W>,
-    canon_counts: &ahash::HashMap<Vec<u64>, usize>,
+    canon_counts: &Counts,
     k: usize,
     is_directed: bool,
 ) -> Result<()> {
     // Sort by count
-    let mut sorted_counts: Vec<(&Vec<u64>, &usize)> = canon_counts.iter().collect();
+    let mut sorted_counts: Vec<(&Label, &usize)> = canon_counts.iter().collect();
     sorted_counts.sort_by(|a, b| a.1.cmp(b.1));
 
     // Write to buffer

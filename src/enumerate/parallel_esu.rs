@@ -1,11 +1,10 @@
-use std::marker::PhantomData;
-
+use std::{marker::PhantomData, sync::Arc};
 use crate::enumerate::{BitGraph, EnumResult, NautyGraph};
 use petgraph::{EdgeType, Graph};
 use rayon::prelude::*;
+use super::{Counts, Label};
 
-type Counts = ahash::HashMap<Vec<u64>, usize>;
-type Memo = flurry::HashMap<Vec<u64>, Vec<u64>>;
+type Memo = flurry::HashMap<Label, Label>;
 
 pub struct ParEsu<Ty: EdgeType + Sync> {
     motif_size: usize,
@@ -135,20 +134,22 @@ impl<Ty: EdgeType + Sync> ParEsu<Ty> {
                 if let Some(count) = counts.get_mut(label) {
                     *count += 1;
                 } else {
-                    counts.insert(label.to_vec(), 1);
+                    counts.insert(label.clone(), 1);
                 }
 
             // Otherwise run nauty to find the canonical label of the subgraph.
             } else {
                 self.run_nauty(ngraph);
-                let label = ngraph.canon();
+                let original = ngraph.graph().to_vec();
+                let label: Arc<[u64]> = ngraph.canon().to_vec().into();
+                // let label = ngraph.canon().to_vec();
                 self.memo
-                    .insert(ngraph.graph().to_vec(), label.to_vec(), &self.memo.guard());
+                    .insert(original.into(), label.clone(), &self.memo.guard());
 
-                if let Some(count) = counts.get_mut(label) {
+                if let Some(count) = counts.get_mut(ngraph.canon()) {
                     *count += 1;
                 } else {
-                    counts.insert(label.to_vec(), 1);
+                    counts.insert(label, 1);
                 }
             };
 

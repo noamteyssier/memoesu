@@ -1,6 +1,4 @@
-use ahash::HashMap;
-
-type Counts = HashMap<Vec<u64>, usize>;
+use crate::enumerate::{Counts, Groups};
 
 #[derive(Debug)]
 pub struct EnumResult {
