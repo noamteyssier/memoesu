@@ -206,9 +206,10 @@ fn write_groups_to_buffer<W: Write>(
         for ((label, node_label, orbit), abundance) in group_info.iter() {
             let adj = graph_to_flat_adj(label, k);
             let canon = write_graph6(adj, k, is_directed);
+            let adj_node_idx = node_idx + 1;
             writeln!(
                 buffer,
-                "{node_idx}\t{canon}\t{node_label}\t{orbit}\t{abundance}"
+                "{adj_node_idx}\t{canon}\t{node_label}\t{orbit}\t{abundance}"
             )?;
         }
     }
