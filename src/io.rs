@@ -206,9 +206,10 @@ fn write_groups_to_buffer<W: Write>(
         for ((label, node_label, orbit), abundance) in group_info.iter() {
             let adj = graph_to_flat_adj(label, k);
             let canon = write_graph6(adj, k, is_directed);
+            let adj_node_idx = node_idx + 1;
             writeln!(
                 buffer,
-                "{node_idx}\t{canon}\t{node_label}\t{orbit}\t{abundance}"
+                "{adj_node_idx}\t{canon}\t{node_label}\t{orbit}\t{abundance}"
             )?;
         }
     }
@@ -286,6 +287,8 @@ pub fn write_graph_to_buffer<W: Write>(
 #[cfg(test)]
 mod testing {
     use petgraph::Undirected;
+
+    use crate::enumerate::group_subgraphs;
 
     use super::*;
     use std::io::Cursor;
@@ -377,5 +380,50 @@ mod testing {
         assert_eq!(graph.node_count(), 3);
         assert_eq!(graph.edge_count(), 3);
         assert!(!graph.contains_edge(0.into(), 0.into()));
+    }
+
+    #[test]
+    fn test_groups_io() {
+        // 2 -> 1
+        // 3 -> 1
+        // 4 -> 1
+        let internal = "2\t1\n3\t1\n4\t1";
+        let mut buffer = Cursor::new(internal);
+        let graph = load_numeric_graph_from_buffer::<Cursor<&str>, Directed>(&mut buffer, false).unwrap();
+        let results = group_subgraphs(&graph, 3);
+        let output = Cursor::new(Vec::new());
+        let mut output_buffer = BufWriter::new(output);
+        write_groups_to_buffer(&mut output_buffer, results.groups(), 3, true, true).unwrap();
+        let string_buffer = std::str::from_utf8(output_buffer.buffer()).unwrap();
+        println!("{}", string_buffer);
+        assert!(string_buffer.contains("4\t&BC_\t1\t1\t2"));
+        assert!(string_buffer.contains("1\t&BC_\t0\t0\t3"));
+        assert!(string_buffer.contains("3\t&BC_\t2\t1\t1"));
+        assert!(string_buffer.contains("3\t&BC_\t1\t1\t1"));
+        assert!(string_buffer.contains("2\t&BC_\t2\t1\t2"));
+        assert!(string_buffer.chars().filter(|c| c == &'\n').count() == 5);
+    }
+
+    #[test]
+    fn test_groups_io_with_header() {
+        // 2 -> 1
+        // 3 -> 1
+        // 4 -> 1
+        let internal = "2\t1\n3\t1\n4\t1";
+        let mut buffer = Cursor::new(internal);
+        let graph = load_numeric_graph_from_buffer::<Cursor<&str>, Directed>(&mut buffer, false).unwrap();
+        let results = group_subgraphs(&graph, 3);
+        let output = Cursor::new(Vec::new());
+        let mut output_buffer = BufWriter::new(output);
+        write_groups_to_buffer(&mut output_buffer, results.groups(), 3, true, false).unwrap();
+        let string_buffer = std::str::from_utf8(output_buffer.buffer()).unwrap();
+        println!("{}", string_buffer);
+        assert!(string_buffer.contains("node_idx\tcanon\tlabel\torbit\tabundance\n"));
+        assert!(string_buffer.contains("4\t&BC_\t1\t1\t2"));
+        assert!(string_buffer.contains("1\t&BC_\t0\t0\t3"));
+        assert!(string_buffer.contains("3\t&BC_\t2\t1\t1"));
+        assert!(string_buffer.contains("3\t&BC_\t1\t1\t1"));
+        assert!(string_buffer.contains("2\t&BC_\t2\t1\t2"));
+        assert!(string_buffer.chars().filter(|c| c == &'\n').count() == 6);
     }
 }
